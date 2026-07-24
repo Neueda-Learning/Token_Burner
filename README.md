@@ -19,7 +19,7 @@ web interface.
 
 ## Project Leader
 
-- Name: TBD
+- Name: Richard Gao
 
 ## Initial Responsibilities
 
