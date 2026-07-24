@@ -1,4 +1,4 @@
-# Token Burnner
+# Token Burner
 
 ## Project
 
