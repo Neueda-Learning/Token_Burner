@@ -1,4 +1,4 @@
-# Team Name
+# Token Burnner
 
 ## Project
 
