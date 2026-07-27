@@ -58,13 +58,18 @@ This section can be updated by the team as contributors are confirmed.
 
 ```text
 payment-processing-system/
-├── README.md
 ├── docs/
 │   ├── architecture.md
 │   ├── api-design.md
 │   └── database-design.md
-├── backend/
-└── frontend/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   └── resources/
+│   └── test/
+│       └── java/
+├── pom.xml
+└── README.md
 ```
 
 ### Structure Summary
@@ -72,8 +77,37 @@ payment-processing-system/
 - `docs/architecture.md` — high-level architecture and component responsibilities
 - `docs/api-design.md` — planned API design and frontend/backend communication approach
 - `docs/database-design.md` — planned database structure and data model overview
-- `backend/` — backend application area
-- `frontend/` — frontend application area
+- `src/main/java/` — Spring Boot backend source code
+- `src/main/resources/` — backend configuration files and future static resources
+- `src/test/java/` — backend test source code
+- `src/main/resources/application-local.properties.example` — local database configuration example for team members
+- `pom.xml` — Maven build configuration
+
+### Frontend Location Decision
+The backend is already organized as a root-level Maven project.
+
+Before frontend implementation starts, the team should keep the frontend location decision consistent. For this one-week training project, the recommended default is:
+
+- `src/main/resources/static/` for a simple Spring Boot-served demo frontend
+
+If the team later chooses a separately managed frontend, a top-level `frontend/` directory can be introduced deliberately rather than by accident.
+
+### Local Database Configuration
+The default backend configuration reads database credentials from environment variables:
+
+- `DB_USERNAME`
+- `DB_PASSWORD`
+
+Current defaults are intended for local training use only.
+
+An example local override template is provided in:
+
+- `src/main/resources/application-local.properties.example`
+
+Also note:
+
+- `spring.jpa.hibernate.ddl-auto=none` means Hibernate will not create tables automatically
+- the database schema must be created separately by the database owner or supplied through a future schema setup process
 
 ## Development Workflow
 The project is expected to progress in a structured and collaborative way:
@@ -159,13 +193,18 @@ This workflow helps keep the team aligned while ensuring that design decisions a
 
 ```text
 payment-processing-system/
-├── README.md
 ├── docs/
 │   ├── architecture.md
 │   ├── api-design.md
 │   └── database-design.md
-├── backend/
-└── frontend/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   └── resources/
+│   └── test/
+│       └── java/
+├── pom.xml
+└── README.md
 ```
 
 ### 结构说明
@@ -173,8 +212,37 @@ payment-processing-system/
 - `docs/architecture.md` — 高层架构与组件职责说明
 - `docs/api-design.md` — 计划中的 API 设计与前后端通信方式
 - `docs/database-design.md` — 计划中的数据库结构与数据模型概览
-- `backend/` — 后端应用区域
-- `frontend/` — 前端应用区域
+- `src/main/java/` — Spring Boot 后端源码
+- `src/main/resources/` — 后端配置文件以及未来可能的静态资源位置
+- `src/test/java/` — 后端测试源码
+- `src/main/resources/application-local.properties.example` — 提供给组员参考的本地数据库配置示例
+- `pom.xml` — Maven 构建配置
+
+### 前端放置位置说明
+当前后端已经按照根目录 Maven 项目结构组织。
+
+在前端正式开始开发前，团队应统一前端放置位置。对于当前这一周的培训项目，推荐优先采用：
+
+- `src/main/resources/static/`，用于放置由 Spring Boot 直接提供的简单演示前端
+
+如果后续决定使用独立管理的前端，再有计划地引入顶层 `frontend/` 目录，而不是在开发过程中临时分叉。
+
+### 本地数据库配置说明
+当前后端配置默认通过环境变量读取数据库凭据：
+
+- `DB_USERNAME`
+- `DB_PASSWORD`
+
+当前默认值仅适用于本地培训演示环境。
+
+仓库中还提供了一个本地覆盖配置模板：
+
+- `src/main/resources/application-local.properties.example`
+
+同时请注意：
+
+- `spring.jpa.hibernate.ddl-auto=none` 表示 Hibernate 不会自动建表
+- 数据库结构需要由数据库负责同学单独提供，或由后续的 schema 初始化方案提供
 
 ## 开发流程
 项目预期将以结构化、协作化的方式推进：
