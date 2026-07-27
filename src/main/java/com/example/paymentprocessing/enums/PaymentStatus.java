@@ -1,10 +1,15 @@
 package com.example.paymentprocessing.enums;
 
 /**
- * TODO Kylian:
- * Define the supported payment lifecycle statuses.
- * The status set is now frozen for the current training scope.
- * Future service logic should enforce the agreed transitions documented in the API design.
+ * Represents the fixed payment lifecycle for the training project.
+ * <p>
+ * These values describe how a payment moves through processing from creation
+ * to either successful completion or failure.
+ * </p>
+ * <p>
+ * {@code COMPLETED} and {@code FAILED} are terminal states.
+ * The service layer is responsible for enforcing valid status transitions.
+ * </p>
  */
 public enum PaymentStatus {
 
@@ -19,4 +24,3 @@ public enum PaymentStatus {
     FAILED
 
 }
-
