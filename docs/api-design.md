@@ -17,6 +17,13 @@ The API follows REST principles:
 /api/payments
 ```
 
+This path is the shared resource prefix, not the standalone create-payment endpoint.
+
+Identifier rules used in this document:
+
+- User-related APIs use `/api/payments/user/{id}` where `id` means the user ID
+- Payment-related APIs use `/api/payments/{payment_id}` where `payment_id` means a specific transaction ID
+
 ## Payment Fields
 The following fields are used throughout the API design:
 
@@ -49,7 +56,7 @@ Example error response:
   "status": 400,
   "error": "Bad Request",
   "message": "Invalid payment request",
-  "path": "/api/payments"
+  "path": "/api/payments/user/{id}"
 }
 ```
 
@@ -58,13 +65,13 @@ Example error response:
 ### 1. Create Payment
 
 **Purpose**  
-Create a new payment record in the system with an initial payment status.
+Create a new payment record for the current user ID with an initial payment status.
 
 **HTTP Method**  
 `POST`
 
 **URL**  
-`/api/payments`
+`/api/payments/user/{id}`
 
 **Request JSON example**
 
@@ -100,16 +107,16 @@ Create a new payment record in the system with an initial payment status.
 - `409 Conflict` — payment creation conflicts with an existing business rule
 - `500 Internal Server Error` — unexpected server-side failure
 
-### 2. Get Payment By ID
+### 2. Get Payment By Payment ID
 
 **Purpose**  
-Retrieve a single payment by its identifier.
+Retrieve a single payment by its `payment_id`.
 
 **HTTP Method**  
 `GET`
 
 **URL**  
-`/api/payments/{id}`
+`/api/payments/{payment_id}`
 
 **Request JSON example**  
 No request body is required.
@@ -132,7 +139,7 @@ No request body is required.
 **Possible HTTP status codes**
 
 - `200 OK` — payment found successfully
-- `400 Bad Request` — invalid identifier format
+- `400 Bad Request` — invalid payment identifier format
 - `404 Not Found` — payment does not exist
 - `500 Internal Server Error` — unexpected server-side failure
 
@@ -145,7 +152,7 @@ Retrieve the status history for a specific payment.
 `GET`
 
 **URL**  
-`/api/payments/{id}/history`
+`/api/payments/{payment_id}/history`
 
 **Request JSON example**  
 No request body is required.
@@ -175,7 +182,7 @@ No request body is required.
 **Possible HTTP status codes**
 
 - `200 OK` — payment history returned successfully
-- `400 Bad Request` — invalid identifier format
+- `400 Bad Request` — invalid payment identifier format
 - `404 Not Found` — payment or history record does not exist
 - `500 Internal Server Error` — unexpected server-side failure
 
@@ -188,7 +195,7 @@ Retrieve all payments associated with a specific user.
 `GET`
 
 **URL**  
-`/api/payments/user/{userId}`
+`/api/payments/user/{id}`
 
 **Request JSON example**  
 No request body is required.
@@ -239,7 +246,7 @@ Update the status of an existing payment as it moves through its lifecycle.
 `PUT`
 
 **URL**  
-`/api/payments/{id}/status`
+`/api/payments/{payment_id}/status`
 
 **Request JSON example**
 
@@ -322,6 +329,13 @@ API 遵循 REST 原则：
 /api/payments
 ```
 
+该路径表示统一的资源前缀，不表示可直接调用的创建支付接口。
+
+本文档中的标识符命名规则如下：
+
+- 与用户 ID 相关的接口统一使用 `/api/payments/user/{id}`，其中 `id` 表示用户 ID
+- 与支付交易相关的接口统一使用 `/api/payments/{payment_id}`，其中 `payment_id` 表示某一笔具体交易的 ID
+
 ## 支付字段
 以下字段会在 API 设计中使用：
 
@@ -354,7 +368,7 @@ API 遵循 REST 原则：
   "status": 400,
   "error": "Bad Request",
   "message": "Invalid payment request",
-  "path": "/api/payments"
+  "path": "/api/payments/user/{id}"
 }
 ```
 
@@ -363,13 +377,13 @@ API 遵循 REST 原则：
 ### 1. Create Payment
 
 **Purpose**  
-在系统中创建一条新的支付记录，并为其设置初始支付状态。
+为当前用户 ID 创建一条新的支付记录，并为其设置初始支付状态。
 
 **HTTP Method**  
 `POST`
 
 **URL**  
-`/api/payments`
+`/api/payments/user/{id}`
 
 **Request JSON example**
 
@@ -405,7 +419,7 @@ API 遵循 REST 原则：
 - `409 Conflict` — payment creation conflicts with an existing business rule
 - `500 Internal Server Error` — unexpected server-side failure
 
-### 2. Get Payment By ID
+### 2. Get Payment By Payment ID
 
 **Purpose**  
 根据支付标识获取单笔支付详情。
@@ -414,7 +428,7 @@ API 遵循 REST 原则：
 `GET`
 
 **URL**  
-`/api/payments/{id}`
+`/api/payments/{payment_id}`
 
 **Request JSON example**  
 该接口无需请求体。
@@ -437,7 +451,7 @@ API 遵循 REST 原则：
 **Possible HTTP status codes**
 
 - `200 OK` — payment found successfully
-- `400 Bad Request` — invalid identifier format
+- `400 Bad Request` — invalid payment identifier format
 - `404 Not Found` — payment does not exist
 - `500 Internal Server Error` — unexpected server-side failure
 
@@ -450,7 +464,7 @@ API 遵循 REST 原则：
 `GET`
 
 **URL**  
-`/api/payments/{id}/history`
+`/api/payments/{payment_id}/history`
 
 **Request JSON example**  
 该接口无需请求体。
@@ -480,7 +494,7 @@ API 遵循 REST 原则：
 **Possible HTTP status codes**
 
 - `200 OK` — payment history returned successfully
-- `400 Bad Request` — invalid identifier format
+- `400 Bad Request` — invalid payment identifier format
 - `404 Not Found` — payment or history record does not exist
 - `500 Internal Server Error` — unexpected server-side failure
 
@@ -493,7 +507,7 @@ API 遵循 REST 原则：
 `GET`
 
 **URL**  
-`/api/payments/user/{userId}`
+`/api/payments/user/{id}`
 
 **Request JSON example**  
 该接口无需请求体。
@@ -544,7 +558,7 @@ API 遵循 REST 原则：
 `PUT`
 
 **URL**  
-`/api/payments/{id}/status`
+`/api/payments/{payment_id}/status`
 
 **Request JSON example**
 
