@@ -39,6 +39,7 @@ Responsibilities:
 - Handle HTTP requests
 - Validate request format
 - Return HTTP responses
+- Return consistent error bodies with fields such as `errorCode` and `message`
 - Map incoming requests to backend operations
 
 Important rule:
@@ -92,7 +93,7 @@ The following example shows how a payment creation request moves through the sys
 4. The controller validates the request format and required fields.
 5. The controller passes the request to the service layer.
 6. The service layer applies business rules for payment creation.
-7. The service layer sets the initial payment status, such as `CREATED`.
+7. The service layer sets the initial payment status, such as `CREATED`, instead of expecting the client to send `status` in the create request.
 8. The service layer coordinates with the repository layer to save the payment.
 9. The repository layer stores the payment data in the database using Spring Data JPA.
 10. The database stores the payment record and an initial status history entry.
@@ -213,6 +214,7 @@ Database
 - 处理 HTTP 请求
 - 校验请求格式
 - 返回 HTTP 响应
+- 返回结构一致的错误响应体，例如包含 `errorCode` 和 `message` 字段
 - 将接收到的请求映射到后端操作
 
 重要规则：
@@ -266,7 +268,7 @@ Database
 4. 控制器校验请求格式和必填字段。
 5. 控制器将请求传递给服务层。
 6. 服务层应用创建支付所需的业务规则。
-7. 服务层设置支付初始状态，例如 `CREATED`。
+7. 服务层设置支付初始状态，例如 `CREATED`，而不是要求客户端在创建请求中传入 `status`。
 8. 服务层协调仓储层保存该支付。
 9. 仓储层通过 Spring Data JPA 将支付数据写入数据库。
 10. 数据库存储支付记录以及一条初始状态历史记录。

@@ -11,6 +11,8 @@ The database contains three main tables:
 
 The design focuses on keeping the current state of a payment easy to query while also preserving a history of status changes for traceability.
 
+Unless otherwise noted, identifier columns such as primary keys and cross-table reference IDs are stored as `BIGINT`.
+
 ## Design Goals
 The database design aims to support:
 
@@ -31,7 +33,7 @@ This table represents user-related account data that can be associated with paym
 
 | Column | Description |
 |---|---|
-| `id` | Unique identifier for the user record |
+| `id` | Unique bigint identifier for the user record |
 | `account_number` | Account number associated with the user |
 | `balance` | Current balance of the account |
 | `status` | Current user or account status |
@@ -45,9 +47,9 @@ This table stores the main payment record. Each row represents a payment transac
 
 | Column | Description |
 |---|---|
-| `id` | Unique identifier for the payment record |
-| `source_account_id` | Reference to the sending account |
-| `destination_account_id` | Reference to the receiving account |
+| `id` | Unique bigint identifier for the payment record |
+| `source_account_id` | Bigint reference to the sending user/account ID (`users.id`) |
+| `destination_account_id` | Bigint reference to the receiving user/account ID (`users.id`) |
 | `amount` | Payment amount |
 | `currency` | Currency used for the payment |
 | `status` | Current status of the payment |
@@ -63,8 +65,8 @@ This table stores the history of payment status transitions. Each row represents
 
 | Column | Description |
 |---|---|
-| `id` | Unique identifier for the history record |
-| `payment_id` | Reference to the related payment |
+| `id` | Unique bigint identifier for the history record |
+| `payment_id` | Bigint reference to the related payment (`payments.id`) |
 | `previous_status` | The status before the change |
 | `new_status` | The status after the change |
 | `changed_at` | Timestamp when the status changed |
@@ -77,7 +79,7 @@ This table stores the history of payment status transitions. Each row represents
 - A user account can also act as the destination account for many payments.
 - Each payment references one source account and one destination account.
 
-This means the `payments` table is related to the `users` table through account identifiers used in `source_account_id` and `destination_account_id`.
+This means the `payments` table is related to the `users` table through `users.id`, which is stored in `source_account_id` and `destination_account_id` as bigint foreign-key-style references.
 
 ### `payments` and `payment_status_history`
 - One payment can have many status history records.
@@ -101,13 +103,14 @@ payments (1) ----- (many) payment_status_history
 
 | id | account_number | balance | status |
 |---|---|---:|---|
-| 1 | ACC-10001 | 5000.00 | ACTIVE |
+| 1001 | ACC-10001 | 5000.00 | ACTIVE |
+| 1002 | ACC-20001 | 3200.00 | ACTIVE |
 
 ### Example `payments` Record
 
 | id | source_account_id | destination_account_id | amount | currency | status | created_at | updated_at |
 |---|---|---|---:|---|---|---|---|
-| 101 | ACC-10001 | ACC-20001 | 1500.00 | USD | SENT | 2026-07-27 10:30:00 | 2026-07-27 10:35:00 |
+| 101 | 1001 | 1002 | 1500.00 | USD | SENT | 2026-07-27 10:30:00 | 2026-07-27 10:35:00 |
 
 ### Example `payment_status_history` Records
 
@@ -170,6 +173,8 @@ This structure keeps the database easy to understand while supporting both curre
 
 该设计重点在于：一方面让支付当前状态易于查询，另一方面保留完整的状态变更历史以支持追踪。
 
+除非特别说明，主键以及跨表关联的标识字段统一使用 `BIGINT` 存储。
+
 ## 设计目标
 数据库设计旨在支持：
 
@@ -190,7 +195,7 @@ This structure keeps the database easy to understand while supporting both curre
 
 | Column | Description |
 |---|---|
-| `id` | 用户记录的唯一标识 |
+| `id` | 用户记录的唯一 bigint 标识 |
 | `account_number` | 与用户关联的账户号码 |
 | `balance` | 账户当前余额 |
 | `status` | 用户或账户当前状态 |
@@ -204,9 +209,9 @@ This structure keeps the database easy to understand while supporting both curre
 
 | Column | Description |
 |---|---|
-| `id` | 支付记录的唯一标识 |
-| `source_account_id` | 付款账户的引用 |
-| `destination_account_id` | 收款账户的引用 |
+| `id` | 支付记录的唯一 bigint 标识 |
+| `source_account_id` | 指向付款用户/账户 ID（`users.id`）的 bigint 引用 |
+| `destination_account_id` | 指向收款用户/账户 ID（`users.id`）的 bigint 引用 |
 | `amount` | 支付金额 |
 | `currency` | 支付所使用的货币 |
 | `status` | 支付当前状态 |
@@ -222,8 +227,8 @@ This structure keeps the database easy to understand while supporting both curre
 
 | Column | Description |
 |---|---|
-| `id` | 历史记录的唯一标识 |
-| `payment_id` | 关联支付记录的引用 |
+| `id` | 历史记录的唯一 bigint 标识 |
+| `payment_id` | 指向支付记录（`payments.id`）的 bigint 引用 |
 | `previous_status` | 变更前的状态 |
 | `new_status` | 变更后的状态 |
 | `changed_at` | 状态变更发生的时间 |
@@ -236,7 +241,7 @@ This structure keeps the database easy to understand while supporting both curre
 - 一个用户账户也可以作为多笔支付的收款账户。
 - 每一笔支付都引用一个源账户和一个目标账户。
 
-这意味着 `payments` 表通过 `source_account_id` 和 `destination_account_id` 与 `users` 表建立关联。
+这意味着 `payments` 表通过 `source_account_id` 和 `destination_account_id` 中保存的 `users.id` bigint 引用与 `users` 表建立关联。
 
 ### `payments` 与 `payment_status_history`
 - 一笔支付可以拥有多条状态历史记录。
@@ -260,13 +265,14 @@ payments (1) ----- (many) payment_status_history
 
 | id | account_number | balance | status |
 |---|---|---:|---|
-| 1 | ACC-10001 | 5000.00 | ACTIVE |
+| 1001 | ACC-10001 | 5000.00 | ACTIVE |
+| 1002 | ACC-20001 | 3200.00 | ACTIVE |
 
 ### `payments` 示例记录
 
 | id | source_account_id | destination_account_id | amount | currency | status | created_at | updated_at |
 |---|---|---|---:|---|---|---|---|
-| 101 | ACC-10001 | ACC-20001 | 1500.00 | USD | SENT | 2026-07-27 10:30:00 | 2026-07-27 10:35:00 |
+| 101 | 1001 | 1002 | 1500.00 | USD | SENT | 2026-07-27 10:30:00 | 2026-07-27 10:35:00 |
 
 ### `payment_status_history` 示例记录
 

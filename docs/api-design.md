@@ -17,12 +17,11 @@ The API follows REST principles:
 /api/payments
 ```
 
-This path is the shared resource prefix, not the standalone create-payment endpoint.
-
 Identifier rules used in this document:
 
-- User-related APIs use `/api/payments/user/{id}` where `id` means the user ID
-- Payment-related APIs use `/api/payments/{payment_id}` where `payment_id` means a specific transaction ID
+- User-related APIs use `/api/payments/user/{id}` where `id` means a bigint user ID
+- Payment-related APIs use `/api/payments/{payment_id}` where `payment_id` means a bigint transaction ID
+- Identifier fields in JSON request and response bodies also use bigint values
 
 ## Payment Fields
 The following fields are used throughout the API design:
@@ -36,6 +35,8 @@ The following fields are used throughout the API design:
 - `createdAt`
 - `updatedAt`
 
+ID-related fields such as `paymentId`, `sourceAccountId`, and `destinationAccountId` are represented as bigint values in the API.
+
 ## Payment Status Values
 The allowed payment statuses are:
 
@@ -46,7 +47,7 @@ The allowed payment statuses are:
 - `FAILED`
 
 ## Common Response Style
-Responses should be returned in JSON format. For successful responses, the API should return the requested payment data or confirmation of the requested action. For validation or business rule failures, the API should return a clear error message and appropriate HTTP status code.
+Responses should be returned in JSON format. For successful responses, the API should return the requested payment data or confirmation of the requested action. For validation or business rule failures, the API should return a clear `errorCode`, a readable `message`, and an appropriate HTTP status code so that the frontend and test cases can identify the exact error type.
 
 Example error response:
 
@@ -55,8 +56,9 @@ Example error response:
   "timestamp": "2026-07-27T10:30:00Z",
   "status": 400,
   "error": "Bad Request",
-  "message": "Invalid payment request",
-  "path": "/api/payments/user/{id}"
+  "errorCode": "INVALID_STATUS_TRANSITION",
+  "message": "Cannot change COMPLETED to CREATED",
+  "path": "/api/payments/101/status"
 }
 ```
 
@@ -65,23 +67,22 @@ Example error response:
 ### 1. Create Payment
 
 **Purpose**  
-Create a new payment record for the current user ID with an initial payment status.
+Create a new payment record in the system. The initial payment status is assigned by the server.
 
 **HTTP Method**  
 `POST`
 
 **URL**  
-`/api/payments/user/{id}`
+`/api/payments`
 
 **Request JSON example**
 
 ```json
 {
-  "sourceAccountId": "ACC-10001",
-  "destinationAccountId": "ACC-20001",
+  "sourceAccountId": 1001,
+  "destinationAccountId": 1002,
   "amount": 1500.00,
-  "currency": "USD",
-  "status": "CREATED"
+  "currency": "USD"
 }
 ```
 
@@ -89,9 +90,9 @@ Create a new payment record for the current user ID with an initial payment stat
 
 ```json
 {
-  "paymentId": "PAY-10001",
-  "sourceAccountId": "ACC-10001",
-  "destinationAccountId": "ACC-20001",
+  "paymentId": 101,
+  "sourceAccountId": 1001,
+  "destinationAccountId": 1002,
   "amount": 1500.00,
   "currency": "USD",
   "status": "CREATED",
@@ -125,9 +126,9 @@ No request body is required.
 
 ```json
 {
-  "paymentId": "PAY-10001",
-  "sourceAccountId": "ACC-10001",
-  "destinationAccountId": "ACC-20001",
+  "paymentId": 101,
+  "sourceAccountId": 1001,
+  "destinationAccountId": 1002,
   "amount": 1500.00,
   "currency": "USD",
   "status": "VALIDATED",
@@ -161,7 +162,7 @@ No request body is required.
 
 ```json
 {
-  "paymentId": "PAY-10001",
+  "paymentId": 101,
   "history": [
     {
       "status": "CREATED",
@@ -204,12 +205,12 @@ No request body is required.
 
 ```json
 {
-  "userId": "USER-1001",
+  "userId": 1001,
   "payments": [
     {
-      "paymentId": "PAY-10001",
-      "sourceAccountId": "ACC-10001",
-      "destinationAccountId": "ACC-20001",
+      "paymentId": 101,
+      "sourceAccountId": 1001,
+      "destinationAccountId": 1002,
       "amount": 1500.00,
       "currency": "USD",
       "status": "COMPLETED",
@@ -217,9 +218,9 @@ No request body is required.
       "updatedAt": "2026-07-27T10:40:00Z"
     },
     {
-      "paymentId": "PAY-10002",
-      "sourceAccountId": "ACC-10001",
-      "destinationAccountId": "ACC-30001",
+      "paymentId": 102,
+      "sourceAccountId": 1001,
+      "destinationAccountId": 1003,
       "amount": 250.00,
       "currency": "USD",
       "status": "FAILED",
@@ -260,9 +261,9 @@ Update the status of an existing payment as it moves through its lifecycle.
 
 ```json
 {
-  "paymentId": "PAY-10001",
-  "sourceAccountId": "ACC-10001",
-  "destinationAccountId": "ACC-20001",
+  "paymentId": 101,
+  "sourceAccountId": 1001,
+  "destinationAccountId": 1002,
   "amount": 1500.00,
   "currency": "USD",
   "status": "SENT",
@@ -329,12 +330,11 @@ API 遵循 REST 原则：
 /api/payments
 ```
 
-该路径表示统一的资源前缀，不表示可直接调用的创建支付接口。
-
 本文档中的标识符命名规则如下：
 
-- 与用户 ID 相关的接口统一使用 `/api/payments/user/{id}`，其中 `id` 表示用户 ID
-- 与支付交易相关的接口统一使用 `/api/payments/{payment_id}`，其中 `payment_id` 表示某一笔具体交易的 ID
+- 与用户 ID 相关的接口统一使用 `/api/payments/user/{id}`，其中 `id` 表示 bigint 类型的用户 ID
+- 与支付交易相关的接口统一使用 `/api/payments/{payment_id}`，其中 `payment_id` 表示 bigint 类型的某一笔具体交易 ID
+- JSON 请求体与响应体中的各类标识字段也统一使用 bigint 值
 
 ## 支付字段
 以下字段会在 API 设计中使用：
@@ -348,6 +348,8 @@ API 遵循 REST 原则：
 - `createdAt`
 - `updatedAt`
 
+其中 `paymentId`、`sourceAccountId`、`destinationAccountId` 等标识字段在 API 中统一表示为 bigint 类型。
+
 ## 支付状态值
 允许的支付状态如下：
 
@@ -358,7 +360,7 @@ API 遵循 REST 原则：
 - `FAILED`
 
 ## 通用响应风格
-响应应采用 JSON 格式返回。对于成功响应，API 应返回请求的数据或操作成功确认。对于校验失败或业务规则失败，API 应返回清晰的错误信息以及适当的 HTTP 状态码。
+响应应采用 JSON 格式返回。对于成功响应，API 应返回请求的数据或操作成功确认。对于校验失败或业务规则失败，API 应返回清晰的 `errorCode`、可读的 `message` 以及适当的 HTTP 状态码，以便前端和测试代码判断具体错误类型。
 
 错误响应示例：
 
@@ -367,8 +369,9 @@ API 遵循 REST 原则：
   "timestamp": "2026-07-27T10:30:00Z",
   "status": 400,
   "error": "Bad Request",
-  "message": "Invalid payment request",
-  "path": "/api/payments/user/{id}"
+  "errorCode": "INVALID_STATUS_TRANSITION",
+  "message": "Cannot change COMPLETED to CREATED",
+  "path": "/api/payments/101/status"
 }
 ```
 
@@ -377,23 +380,22 @@ API 遵循 REST 原则：
 ### 1. Create Payment
 
 **Purpose**  
-为当前用户 ID 创建一条新的支付记录，并为其设置初始支付状态。
+在系统中创建一条新的支付记录。初始支付状态由服务端设置。
 
 **HTTP Method**  
 `POST`
 
 **URL**  
-`/api/payments/user/{id}`
+`/api/payments`
 
 **Request JSON example**
 
 ```json
 {
-  "sourceAccountId": "ACC-10001",
-  "destinationAccountId": "ACC-20001",
+  "sourceAccountId": 1001,
+  "destinationAccountId": 1002,
   "amount": 1500.00,
-  "currency": "USD",
-  "status": "CREATED"
+  "currency": "USD"
 }
 ```
 
@@ -401,9 +403,9 @@ API 遵循 REST 原则：
 
 ```json
 {
-  "paymentId": "PAY-10001",
-  "sourceAccountId": "ACC-10001",
-  "destinationAccountId": "ACC-20001",
+  "paymentId": 101,
+  "sourceAccountId": 1001,
+  "destinationAccountId": 1002,
   "amount": 1500.00,
   "currency": "USD",
   "status": "CREATED",
@@ -437,9 +439,9 @@ API 遵循 REST 原则：
 
 ```json
 {
-  "paymentId": "PAY-10001",
-  "sourceAccountId": "ACC-10001",
-  "destinationAccountId": "ACC-20001",
+  "paymentId": 101,
+  "sourceAccountId": 1001,
+  "destinationAccountId": 1002,
   "amount": 1500.00,
   "currency": "USD",
   "status": "VALIDATED",
@@ -473,7 +475,7 @@ API 遵循 REST 原则：
 
 ```json
 {
-  "paymentId": "PAY-10001",
+  "paymentId": 101,
   "history": [
     {
       "status": "CREATED",
@@ -516,12 +518,12 @@ API 遵循 REST 原则：
 
 ```json
 {
-  "userId": "USER-1001",
+  "userId": 1001,
   "payments": [
     {
-      "paymentId": "PAY-10001",
-      "sourceAccountId": "ACC-10001",
-      "destinationAccountId": "ACC-20001",
+      "paymentId": 101,
+      "sourceAccountId": 1001,
+      "destinationAccountId": 1002,
       "amount": 1500.00,
       "currency": "USD",
       "status": "COMPLETED",
@@ -529,9 +531,9 @@ API 遵循 REST 原则：
       "updatedAt": "2026-07-27T10:40:00Z"
     },
     {
-      "paymentId": "PAY-10002",
-      "sourceAccountId": "ACC-10001",
-      "destinationAccountId": "ACC-30001",
+      "paymentId": 102,
+      "sourceAccountId": 1001,
+      "destinationAccountId": 1003,
       "amount": 250.00,
       "currency": "USD",
       "status": "FAILED",
@@ -572,9 +574,9 @@ API 遵循 REST 原则：
 
 ```json
 {
-  "paymentId": "PAY-10001",
-  "sourceAccountId": "ACC-10001",
-  "destinationAccountId": "ACC-20001",
+  "paymentId": 101,
+  "sourceAccountId": 1001,
+  "destinationAccountId": 1002,
   "amount": 1500.00,
   "currency": "USD",
   "status": "SENT",
