@@ -1,7 +1,7 @@
 package com.example.paymentprocessing.enums;
 
 /**
- * TODO Member B:
+ * TODO Kylian:
  * Define the supported payment lifecycle statuses.
  * Add enum constants later after the team finalizes the implementation details.
  */

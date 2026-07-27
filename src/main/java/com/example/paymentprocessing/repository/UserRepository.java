@@ -1,7 +1,7 @@
 package com.example.paymentprocessing.repository;
 
 /**
- * TODO Member B:
+ * TODO Kylian:
  * Define repository operations for user persistence and lookup.
  * Add Spring Data repository inheritance and query methods later.
  * Future responsibilities:

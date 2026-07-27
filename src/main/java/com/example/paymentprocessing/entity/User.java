@@ -1,7 +1,7 @@
 package com.example.paymentprocessing.entity;
 
 /**
- * TODO Member B:
+ * TODO Kylian:
  * Define the user entity structure for account-related data.
  * Add fields, JPA mapping, and persistence-related annotations later.
  * Future field:

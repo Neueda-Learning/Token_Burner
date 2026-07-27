@@ -1,7 +1,7 @@
 package com.example.paymentprocessing.entity;
 
 /**
- * TODO Member B:
+ * TODO Kylian:
  * Define the payment status history entity structure for lifecycle tracking.
  * Add fields, JPA mapping, and persistence-related annotations later.
  */
