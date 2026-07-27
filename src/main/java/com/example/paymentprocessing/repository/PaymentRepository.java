@@ -12,4 +12,3 @@ package com.example.paymentprocessing.repository;
 public interface PaymentRepository {
     // TODO Add payment repository method declarations for future payment storage and lookup.
 }
-

@@ -51,7 +51,7 @@ This table stores the main payment record. Each row represents a payment transac
 |---|---|
 | `id` | Unique bigint identifier for the payment record |
 | `source_account_id` | Bigint reference to the sending user/account ID (`users.id`) |
-| `destination_account_id` | Bigint reference to the receiving user/account ID (`users.id`) |
+| `destination_account_number` | Receiving account number (snapshot value, no foreign key constraint) |
 | `amount` | Payment amount |
 | `currency` | Currency used for the payment |
 | `status` | Current status of the payment |
@@ -81,7 +81,7 @@ This table stores the history of payment status transitions. Each row represents
 - A user account can also act as the destination account for many payments.
 - Each payment references one source account and one destination account.
 
-This means the `payments` table is related to the `users` table through `users.id`, which is stored in `source_account_id` and `destination_account_id` as bigint foreign-key-style references.
+This means the `payments` table keeps a foreign-key relationship to `users.id` through `source_account_id`, while `destination_account_number` stores the receiving account number directly without a foreign key constraint.
 
 ### `payments` and `payment_status_history`
 - One payment can have many status history records.
@@ -110,9 +110,9 @@ payments (1) ----- (many) payment_status_history
 
 ### Example `payments` Record
 
-| id | source_account_id | destination_account_id | amount | currency | status | created_at | updated_at |
+| id | source_account_id | destination_account_number | amount | currency | status | created_at | updated_at |
 |---|---|---|---:|---|---|---|---|
-| 101 | 1001 | 1002 | 1500.00 | USD | SENT | 2026-07-27 10:30:00 | 2026-07-27 10:35:00 |
+| 101 | 1001 | ACC-20001 | 1500.00 | USD | SENT | 2026-07-27 10:30:00 | 2026-07-27 10:35:00 |
 
 ### Example `payment_status_history` Records
 
@@ -215,7 +215,7 @@ This structure keeps the database easy to understand while supporting both curre
 |---|---|
 | `id` | 支付记录的唯一 bigint 标识 |
 | `source_account_id` | 指向付款用户/账户 ID（`users.id`）的 bigint 引用 |
-| `destination_account_id` | 指向收款用户/账户 ID（`users.id`）的 bigint 引用 |
+| `destination_account_number` | 收款账户号（快照值，不设置外键约束） |
 | `amount` | 支付金额 |
 | `currency` | 支付所使用的货币 |
 | `status` | 支付当前状态 |
@@ -245,7 +245,7 @@ This structure keeps the database easy to understand while supporting both curre
 - 一个用户账户也可以作为多笔支付的收款账户。
 - 每一笔支付都引用一个源账户和一个目标账户。
 
-这意味着 `payments` 表通过 `source_account_id` 和 `destination_account_id` 中保存的 `users.id` bigint 引用与 `users` 表建立关联。
+这意味着 `payments` 表通过 `source_account_id` 与 `users.id` 建立外键关联，而 `destination_account_number` 直接保存收款账户号，不设置外键约束。
 
 ### `payments` 与 `payment_status_history`
 - 一笔支付可以拥有多条状态历史记录。
@@ -274,9 +274,9 @@ payments (1) ----- (many) payment_status_history
 
 ### `payments` 示例记录
 
-| id | source_account_id | destination_account_id | amount | currency | status | created_at | updated_at |
+| id | source_account_id | destination_account_number | amount | currency | status | created_at | updated_at |
 |---|---|---|---:|---|---|---|---|
-| 101 | 1001 | 1002 | 1500.00 | USD | SENT | 2026-07-27 10:30:00 | 2026-07-27 10:35:00 |
+| 101 | 1001 | ACC-20001 | 1500.00 | USD | SENT | 2026-07-27 10:30:00 | 2026-07-27 10:35:00 |
 
 ### `payment_status_history` 示例记录
 
