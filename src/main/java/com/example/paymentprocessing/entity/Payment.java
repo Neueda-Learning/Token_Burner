@@ -1,5 +1,7 @@
 package com.example.paymentprocessing.entity;
-
+/**
+ * TODO Kylian:
+ */
 import com.example.paymentprocessing.enums.PaymentStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
