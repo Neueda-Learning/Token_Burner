@@ -37,6 +37,12 @@ The following fields are used throughout the API design:
 
 ID-related fields such as `paymentId`, `sourceAccountId`, and `destinationAccountId` are represented as bigint values in the API.
 
+Request-only field used by payment creation:
+
+- `paymentPassword`
+
+`paymentPassword` is accepted only in the create-payment request. It must never be stored in the `payments` table, must never be stored in the payment history table, and must never appear in any API response.
+
 ## Payment Status Values
 The allowed payment statuses are:
 
@@ -82,9 +88,12 @@ Create a new payment record in the system. The initial payment status is assigne
   "sourceAccountId": 1001,
   "destinationAccountId": 1002,
   "amount": 1500.00,
-  "currency": "USD"
+  "currency": "USD",
+  "paymentPassword": "123456"
 }
 ```
+
+`paymentPassword` is a request-only field. It is used for payment password verification during payment creation. It must not be stored in `payments`, must not be stored in payment history, and must not appear in any response payload.
 
 **Response JSON example**
 
@@ -105,6 +114,7 @@ Create a new payment record in the system. The initial payment status is assigne
 
 - `201 Created` — payment created successfully
 - `400 Bad Request` — invalid request format or missing required data
+- `403 Forbidden` — payment password verification failed
 - `409 Conflict` — payment creation conflicts with an existing business rule
 - `500 Internal Server Error` — unexpected server-side failure
 
@@ -165,16 +175,25 @@ No request body is required.
   "paymentId": 101,
   "history": [
     {
-      "status": "CREATED",
-      "updatedAt": "2026-07-27T10:30:00Z"
+      "historyId": 1001,
+      "previousStatus": null,
+      "newStatus": "CREATED",
+      "changedAt": "2026-07-27T10:30:00Z",
+      "notes": "Payment created successfully"
     },
     {
-      "status": "VALIDATED",
-      "updatedAt": "2026-07-27T10:32:00Z"
+      "historyId": 1002,
+      "previousStatus": "CREATED",
+      "newStatus": "VALIDATED",
+      "changedAt": "2026-07-27T10:32:00Z",
+      "notes": "Payment request validated"
     },
     {
-      "status": "SENT",
-      "updatedAt": "2026-07-27T10:35:00Z"
+      "historyId": 1003,
+      "previousStatus": "VALIDATED",
+      "newStatus": "SENT",
+      "changedAt": "2026-07-27T10:35:00Z",
+      "notes": "Payment sent for processing"
     }
   ]
 }
@@ -184,13 +203,13 @@ No request body is required.
 
 - `200 OK` — payment history returned successfully
 - `400 Bad Request` — invalid payment identifier format
-- `404 Not Found` — payment or history record does not exist
+- `404 Not Found` — payment does not exist
 - `500 Internal Server Error` — unexpected server-side failure
 
 ### 4. Get Payments By User
 
 **Purpose**  
-Retrieve all payments associated with a specific user.
+Retrieve all payments associated with a specific user, including payments sent by the user and payments received by the user.
 
 **HTTP Method**  
 `GET`
@@ -231,11 +250,13 @@ No request body is required.
 }
 ```
 
+If the user exists but has no related payment records, the API should return `200 OK` with an empty `payments` array.
+
 **Possible HTTP status codes**
 
 - `200 OK` — user payments returned successfully
 - `400 Bad Request` — invalid user identifier format
-- `404 Not Found` — user does not exist or has no accessible records
+- `404 Not Found` — user does not exist
 - `500 Internal Server Error` — unexpected server-side failure
 
 ### 5. Update Payment Status
@@ -281,13 +302,25 @@ Update the status of an existing payment as it moves through its lifecycle.
 - `500 Internal Server Error` — unexpected server-side failure
 
 ## Status Transition Considerations
-The payment lifecycle is expected to follow this general path:
+The supported payment statuses are frozen as:
 
-`CREATED → VALIDATED → SENT → COMPLETED`
+`CREATED`, `VALIDATED`, `SENT`, `COMPLETED`, `FAILED`
 
-A payment may also transition to `FAILED` if processing cannot continue successfully.
+The allowed status transitions are:
 
-The API should reject invalid or inconsistent status updates. For example, an update that attempts to move directly from `CREATED` to `COMPLETED` may be rejected depending on the business rules defined in the service layer.
+- `CREATED → VALIDATED`
+- `CREATED → FAILED`
+- `VALIDATED → SENT`
+- `VALIDATED → FAILED`
+- `SENT → COMPLETED`
+- `SENT → FAILED`
+
+Terminal states:
+
+- `COMPLETED` — no further transitions allowed
+- `FAILED` — no further transitions allowed
+
+The API should reject invalid or inconsistent status updates, such as `CREATED → COMPLETED`.
 
 ## REST Design Notes
 This API design follows REST principles in the following ways:
@@ -350,6 +383,12 @@ API 遵循 REST 原则：
 
 其中 `paymentId`、`sourceAccountId`、`destinationAccountId` 等标识字段在 API 中统一表示为 bigint 类型。
 
+创建支付时使用的请求专属字段：
+
+- `paymentPassword`
+
+`paymentPassword` 只允许出现在创建支付请求中。它不能写入 `payments` 表，不能写入支付历史表，也不能出现在任何 API 响应中。
+
 ## 支付状态值
 允许的支付状态如下：
 
@@ -395,9 +434,12 @@ API 遵循 REST 原则：
   "sourceAccountId": 1001,
   "destinationAccountId": 1002,
   "amount": 1500.00,
-  "currency": "USD"
+  "currency": "USD",
+  "paymentPassword": "123456"
 }
 ```
+
+`paymentPassword` 是一个仅用于请求的临时字段，用于在创建支付时进行支付密码校验。它不能写入 `payments`，不能写入支付历史，也不能出现在任何响应体中。
 
 **Response JSON example**
 
@@ -418,6 +460,7 @@ API 遵循 REST 原则：
 
 - `201 Created` — payment created successfully
 - `400 Bad Request` — invalid request format or missing required data
+- `403 Forbidden` — payment password verification failed
 - `409 Conflict` — payment creation conflicts with an existing business rule
 - `500 Internal Server Error` — unexpected server-side failure
 
@@ -478,16 +521,25 @@ API 遵循 REST 原则：
   "paymentId": 101,
   "history": [
     {
-      "status": "CREATED",
-      "updatedAt": "2026-07-27T10:30:00Z"
+      "historyId": 1001,
+      "previousStatus": null,
+      "newStatus": "CREATED",
+      "changedAt": "2026-07-27T10:30:00Z",
+      "notes": "Payment created successfully"
     },
     {
-      "status": "VALIDATED",
-      "updatedAt": "2026-07-27T10:32:00Z"
+      "historyId": 1002,
+      "previousStatus": "CREATED",
+      "newStatus": "VALIDATED",
+      "changedAt": "2026-07-27T10:32:00Z",
+      "notes": "Payment request validated"
     },
     {
-      "status": "SENT",
-      "updatedAt": "2026-07-27T10:35:00Z"
+      "historyId": 1003,
+      "previousStatus": "VALIDATED",
+      "newStatus": "SENT",
+      "changedAt": "2026-07-27T10:35:00Z",
+      "notes": "Payment sent for processing"
     }
   ]
 }
@@ -497,13 +549,13 @@ API 遵循 REST 原则：
 
 - `200 OK` — payment history returned successfully
 - `400 Bad Request` — invalid payment identifier format
-- `404 Not Found` — payment or history record does not exist
+- `404 Not Found` — payment does not exist
 - `500 Internal Server Error` — unexpected server-side failure
 
 ### 4. Get Payments By User
 
 **Purpose**  
-获取与指定用户关联的所有支付记录。
+获取与指定用户关联的所有支付记录，包括该用户发出的支付以及该用户收到的支付。
 
 **HTTP Method**  
 `GET`
@@ -544,11 +596,13 @@ API 遵循 REST 原则：
 }
 ```
 
+如果用户存在，但当前没有任何关联支付记录，接口应返回 `200 OK`，并且 `payments` 数组为空。
+
 **Possible HTTP status codes**
 
 - `200 OK` — user payments returned successfully
 - `400 Bad Request` — invalid user identifier format
-- `404 Not Found` — user does not exist or has no accessible records
+- `404 Not Found` — user does not exist
 - `500 Internal Server Error` — unexpected server-side failure
 
 ### 5. Update Payment Status
@@ -594,13 +648,25 @@ API 遵循 REST 原则：
 - `500 Internal Server Error` — unexpected server-side failure
 
 ## 状态流转说明
-支付生命周期预期遵循如下路径：
+当前已冻结的支付状态如下：
 
-`CREATED → VALIDATED → SENT → COMPLETED`
+`CREATED`、`VALIDATED`、`SENT`、`COMPLETED`、`FAILED`
 
-如果处理过程中无法继续，支付也可以转为 `FAILED` 状态。
+允许的状态流转如下：
 
-API 应拒绝不合法或不一致的状态更新。例如，若业务规则不允许，则尝试从 `CREATED` 直接跳转到 `COMPLETED` 的请求应被拒绝。具体规则由服务层定义。
+- `CREATED → VALIDATED`
+- `CREATED → FAILED`
+- `VALIDATED → SENT`
+- `VALIDATED → FAILED`
+- `SENT → COMPLETED`
+- `SENT → FAILED`
+
+终态说明：
+
+- `COMPLETED` —— 不允许继续流转
+- `FAILED` —— 不允许继续流转
+
+API 应拒绝不合法或不一致的状态更新，例如 `CREATED → COMPLETED`。具体规则由服务层实现。
 
 ## REST 设计说明
 本 API 在以下方面遵循 REST 原则：
