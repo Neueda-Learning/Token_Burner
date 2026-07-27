@@ -1,7 +1,7 @@
 # Payment Processing System Database Design
 
 ## Overview
-This document describes the database design for the Payment Processing System. The database is designed to support payment processing, user account management, and payment lifecycle tracking.
+This document describes the database design for the Payment Processing System. The database is designed to support payment processing, user account management, payment verification, and payment lifecycle tracking.
 
 The database contains three main tables:
 
@@ -17,6 +17,7 @@ Unless otherwise noted, identifier columns such as primary keys and cross-table 
 The database design aims to support:
 
 - Storage of user account information
+- Secure storage of payment password credentials for payment verification
 - Storage of payment transaction details
 - Tracking of payment lifecycle changes over time
 - Clear relationships between user accounts and payments
@@ -27,7 +28,7 @@ The database design aims to support:
 ### 1. `users`
 **Purpose:** Store user account information.
 
-This table represents user-related account data that can be associated with payment activity. It stores account identifiers, account balances, and account status information.
+This table represents user-related account data that can be associated with payment activity. It stores account identifiers, account balances, account status information, and payment password credentials used to confirm sensitive payment actions.
 
 #### Column Description
 
@@ -37,6 +38,7 @@ This table represents user-related account data that can be associated with paym
 | `account_number` | Account number associated with the user |
 | `balance` | Current balance of the account |
 | `status` | Current user or account status |
+| `payment_password_hash` | Hashed payment password used for payment verification; plaintext passwords must not be stored |
 
 ### 2. `payments`
 **Purpose:** Store payment transaction information.
@@ -101,10 +103,10 @@ payments (1) ----- (many) payment_status_history
 
 ### Example `users` Record
 
-| id | account_number | balance | status |
-|---|---|---:|---|
-| 1001 | ACC-10001 | 5000.00 | ACTIVE |
-| 1002 | ACC-20001 | 3200.00 | ACTIVE |
+| id | account_number | balance | status | payment_password_hash |
+|---|---|---:|---|---|
+| 1001 | ACC-10001 | 5000.00 | ACTIVE | hashed_pwd_value_1 |
+| 1002 | ACC-20001 | 3200.00 | ACTIVE | hashed_pwd_value_2 |
 
 ### Example `payments` Record
 
@@ -143,7 +145,7 @@ The `payments` table should represent the latest state of a payment. Mixing curr
 Most day-to-day operations need the current payment status quickly. Keeping the latest status directly in `payments` makes these queries simpler, while the history table remains available for detailed tracking.
 
 ## Data Usage Summary
-- `users` stores account-related user information
+- `users` stores account-related user information and payment password credentials
 - `payments` stores the current state of each payment transaction
 - `payment_status_history` stores the record of lifecycle changes for each payment
 
@@ -152,7 +154,7 @@ Together, these tables provide both operational data and historical visibility, 
 ## Summary
 The database design is centered around three clearly separated tables:
 
-- `users` for account information
+- `users` for account information and payment password verification data
 - `payments` for payment transaction records
 - `payment_status_history` for payment lifecycle tracking
 
@@ -163,7 +165,7 @@ This structure keeps the database easy to understand while supporting both curre
 # 支付处理系统数据库设计
 
 ## 概述
-本文档描述了 Payment Processing System 的数据库设计。该数据库用于支持支付处理、用户账户管理以及支付生命周期跟踪。
+本文档描述了 Payment Processing System 的数据库设计。该数据库用于支持支付处理、用户账户管理、支付密码校验以及支付生命周期跟踪。
 
 数据库包含三张主要表：
 
@@ -179,6 +181,7 @@ This structure keeps the database easy to understand while supporting both curre
 数据库设计旨在支持：
 
 - 存储用户账户信息
+- 安全存储用于支付校验的支付密码凭据
 - 存储支付交易数据
 - 跟踪支付生命周期中的状态变化
 - 建立用户账户与支付之间清晰的关系
@@ -189,7 +192,7 @@ This structure keeps the database easy to understand while supporting both curre
 ### 1. `users`
 **Purpose:** Store user account information.
 
-该表表示与支付活动相关的用户账户数据，存储账户标识、账户余额以及账户状态信息。
+该表表示与支付活动相关的用户账户数据，存储账户标识、账户余额、账户状态信息，以及用于敏感支付操作校验的支付密码凭据。
 
 #### 字段说明
 
@@ -199,6 +202,7 @@ This structure keeps the database easy to understand while supporting both curre
 | `account_number` | 与用户关联的账户号码 |
 | `balance` | 账户当前余额 |
 | `status` | 用户或账户当前状态 |
+| `payment_password_hash` | 用于支付校验的支付密码哈希值；不应存储明文密码 |
 
 ### 2. `payments`
 **Purpose:** Store payment transaction information.
@@ -263,10 +267,10 @@ payments (1) ----- (many) payment_status_history
 
 ### `users` 示例记录
 
-| id | account_number | balance | status |
-|---|---|---:|---|
-| 1001 | ACC-10001 | 5000.00 | ACTIVE |
-| 1002 | ACC-20001 | 3200.00 | ACTIVE |
+| id | account_number | balance | status | payment_password_hash |
+|---|---|---:|---|---|
+| 1001 | ACC-10001 | 5000.00 | ACTIVE | hashed_pwd_value_1 |
+| 1002 | ACC-20001 | 3200.00 | ACTIVE | hashed_pwd_value_2 |
 
 ### `payments` 示例记录
 
@@ -305,7 +309,7 @@ payments (1) ----- (many) payment_status_history
 大多数日常操作都需要快速获取支付当前状态。将最新状态直接保存在 `payments` 表中可以使查询更简单，而历史表则专门用于详细追踪。
 
 ## 数据使用总结
-- `users` 存储账户相关的用户信息
+- `users` 存储账户相关的用户信息以及支付密码凭据
 - `payments` 存储每笔支付交易的当前状态
 - `payment_status_history` 存储每笔支付生命周期变化的记录
 
@@ -314,7 +318,7 @@ payments (1) ----- (many) payment_status_history
 ## 总结
 该数据库设计围绕三张职责清晰分离的表展开：
 
-- `users` 用于账户信息
+- `users` 用于账户信息与支付密码校验数据
 - `payments` 用于支付交易记录
 - `payment_status_history` 用于支付生命周期跟踪
 
