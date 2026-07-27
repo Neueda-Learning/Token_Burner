@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import PaymentForm from "../components/PaymentForm.vue";
 import { usePaymentStore } from "../stores/payment";
@@ -15,6 +15,10 @@ const router = useRouter();
 const store = usePaymentStore();
 
 const isLoading = computed(() => store.status === "loading");
+
+onMounted(() => {
+  store.clearError();
+});
 
 async function handleCreatePayment(payload: CreatePaymentRequest): Promise<void> {
   try {

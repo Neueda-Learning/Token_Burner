@@ -2,7 +2,9 @@
   <div class="app-shell">
     <AppHeader />
     <main class="content-wrap">
-      <RouterView />
+      <RouterView v-slot="{ Component }">
+        <component v-if="Component" :is="Component" />
+      </RouterView>
     </main>
   </div>
 </template>

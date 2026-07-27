@@ -8,7 +8,8 @@ import UserPaymentsView from "../views/UserPaymentsView.vue";
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
-    { path: "/", name: "dashboard", component: DashboardView, alias: ["/dashboard"] },
+    { path: "/", redirect: { name: "dashboard" } },
+    { path: "/dashboard", name: "dashboard", component: DashboardView },
     { path: "/payments/create", name: "create-payment", component: CreatePaymentView },
     { path: "/payments/:paymentId", name: "payment-detail", component: PaymentDetailView },
     { path: "/payments/:paymentId/history", name: "payment-history", component: PaymentHistoryView },

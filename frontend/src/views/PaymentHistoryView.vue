@@ -23,23 +23,29 @@ const store = usePaymentStore();
 const paymentId = computed(() => Number(route.params.paymentId));
 const isLoading = computed(() => store.status === "loading");
 
-async function loadHistory(): Promise<void> {
-  if (!Number.isInteger(paymentId.value) || paymentId.value <= 0) {
+async function loadHistory(currentPaymentId: number): Promise<void> {
+  if (!Number.isInteger(currentPaymentId) || currentPaymentId <= 0) {
+    store.paymentHistory = [];
+    store.status = "error";
     store.errorMessage = "Invalid payment ID.";
     return;
   }
 
   try {
-    await store.fetchPaymentHistory(paymentId.value);
+    await store.fetchPaymentHistory(currentPaymentId);
   } catch {
     // Error state is shown from store.
   }
 }
 
 watch(
-  () => route.params.paymentId,
-  async () => {
-    await loadHistory();
+  () => [route.name, route.params.paymentId] as const,
+  async ([routeName, routePaymentId]) => {
+    if (routeName !== "payment-history") {
+      return;
+    }
+
+    await loadHistory(Number(routePaymentId));
   },
   { immediate: true }
 );

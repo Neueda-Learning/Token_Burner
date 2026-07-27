@@ -1,10 +1,10 @@
 <template>
   <header class="header">
     <div class="inner">
-      <RouterLink to="/dashboard" class="brand">Payment Processing System</RouterLink>
+      <RouterLink :to="{ name: 'dashboard' }" class="brand">Payment Processing System</RouterLink>
 
       <nav class="nav">
-        <RouterLink to="/dashboard" class="nav-link">Dashboard</RouterLink>
+        <RouterLink :to="{ name: 'dashboard' }" class="nav-link">Dashboard</RouterLink>
         <RouterLink :to="{ name: 'create-payment' }" class="nav-link">Create Payment</RouterLink>
       </nav>
     </div>

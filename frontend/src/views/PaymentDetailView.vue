@@ -29,23 +29,29 @@ const store = usePaymentStore();
 const paymentId = computed(() => Number(route.params.paymentId));
 const isLoading = computed(() => store.status === "loading");
 
-async function loadPayment(): Promise<void> {
-  if (!Number.isInteger(paymentId.value) || paymentId.value <= 0) {
+async function loadPayment(currentPaymentId: number): Promise<void> {
+  if (!Number.isInteger(currentPaymentId) || currentPaymentId <= 0) {
+    store.payment = null;
+    store.status = "error";
     store.errorMessage = "Invalid payment ID.";
     return;
   }
 
   try {
-    await store.fetchPayment(paymentId.value);
+    await store.fetchPayment(currentPaymentId);
   } catch {
     // Error text is already stored.
   }
 }
 
 watch(
-  () => route.params.paymentId,
-  async () => {
-    await loadPayment();
+  () => [route.name, route.params.paymentId] as const,
+  async ([routeName, routePaymentId]) => {
+    if (routeName !== "payment-detail") {
+      return;
+    }
+
+    await loadPayment(Number(routePaymentId));
   },
   { immediate: true }
 );
