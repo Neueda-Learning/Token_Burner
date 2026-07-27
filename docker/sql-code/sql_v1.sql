@@ -57,44 +57,45 @@ create table if not exists `payment_status_history`
         foreign key (`payment_id`) references `payments` (`id`) on delete cascade
     ) engine = InnoDB default charset = utf8mb4 collate = utf8mb4_unicode_ci comment '支付状态历史';
 
+-- =========================
+-- Seed data (10 rows/table)
+-- =========================
 
+-- users: 10 records
+INSERT INTO `users` (`id`, `account_number`, `balance`, `status`, `payment_password_hash`, `created_at`, `updated_at`) VALUES
+(1001, '6222021234567890123', 12000.00, 'ACTIVE',   'hash_pwd_u1001', '2026-07-27 09:00:00', '2026-07-27 09:00:00'),
+(1002, '6214830000000001',    8600.50,  'ACTIVE',   'hash_pwd_u1002', '2026-07-27 09:02:00', '2026-07-27 09:02:00'),
+(1003, '6228480402564890018', 3000.00,  'ACTIVE',   'hash_pwd_u1003', '2026-07-27 09:04:00', '2026-07-27 09:04:00'),
+(1004, '6259071000001234',    1500.00,  'INACTIVE', 'hash_pwd_u1004', '2026-07-27 09:06:00', '2026-07-27 09:06:00'),
+(1005, '6217003810000000005', 500.00,   'ACTIVE',   'hash_pwd_u1005', '2026-07-27 09:08:00', '2026-07-27 09:08:00'),
+(1006, '6225889900112233445', 20000.00, 'ACTIVE',   'hash_pwd_u1006', '2026-07-27 09:10:00', '2026-07-27 09:10:00'),
+(1007, '622260999900001234',  980.75,   'ACTIVE',   'hash_pwd_u1007', '2026-07-27 09:12:00', '2026-07-27 09:12:00'),
+(1008, '6216610180001234567', 4300.20,  'INACTIVE', 'hash_pwd_u1008', '2026-07-27 09:14:00', '2026-07-27 09:14:00'),
+(1009, '6226090000008888999', 7650.00,  'ACTIVE',   'hash_pwd_u1009', '2026-07-27 09:16:00', '2026-07-27 09:16:00'),
+(1010, '6212261001020304050', 1111.11,  'ACTIVE',   'hash_pwd_u1010', '2026-07-27 09:18:00', '2026-07-27 09:18:00');
 
--- 示例数据（对应文档示例记录）
-insert into `users` (`id`, `account_number`, `balance`, `status`, `payment_password_hash`, `created_at`, `updated_at`)
-values
-    (1001, 'ACC-10001', 5000.00, 'ACTIVE', 'hashed_pwd_value_1', '2026-07-27 10:00:00', '2026-07-27 10:00:00'),
-    (1002, 'ACC-20001', 3200.00, 'ACTIVE', 'hashed_pwd_value_2', '2026-07-27 10:00:00', '2026-07-27 10:00:00')
-on duplicate key update
-    `account_number` = values(`account_number`),
-    `balance` = values(`balance`),
-    `status` = values(`status`),
-    `payment_password_hash` = values(`payment_password_hash`),
-    `created_at` = values(`created_at`),
-    `updated_at` = values(`updated_at`);
+-- payments: 10 records
+INSERT INTO `payments` (`id`, `source_account_id`, `destination_account_number`, `amount`, `currency`, `status`, `created_at`, `updated_at`) VALUES
+(2001, 1001, '6214830000000001',    500.00,  'USD', 'VALIDATED', '2026-07-27 10:00:00', '2026-07-27 10:02:00'),
+(2002, 1002, '6228480402564890018', 1200.00, 'USD', 'SENT',      '2026-07-27 10:05:00', '2026-07-27 10:08:00'),
+(2003, 1003, '6222021234567890123', 88.88,   'USD', 'FAILED',    '2026-07-27 10:10:00', '2026-07-27 10:12:00'),
+(2004, 1004, '6217003810000000005', 300.00,  'USD', 'CREATED',   '2026-07-27 10:15:00', '2026-07-27 10:15:00'),
+(2005, 1005, '6225889900112233445', 66.60,   'USD', 'COMPLETED', '2026-07-27 10:20:00', '2026-07-27 10:25:00'),
+(2006, 1006, '622260999900001234',  999.99,  'USD', 'SENT',      '2026-07-27 10:30:00', '2026-07-27 10:33:00'),
+(2007, 1007, '6216610180001234567', 10.00,   'USD', 'VALIDATED', '2026-07-27 10:35:00', '2026-07-27 10:36:00'),
+(2008, 1008, '6226090000008888999', 250.50,  'USD', 'FAILED',    '2026-07-27 10:40:00', '2026-07-27 10:42:00'),
+(2009, 1009, '6212261001020304050', 700.00,  'USD', 'COMPLETED', '2026-07-27 10:45:00', '2026-07-27 10:50:00'),
+(2010, 1010, '6259071000001234',    45.67,   'USD', 'CREATED',   '2026-07-27 10:55:00', '2026-07-27 10:55:00');
 
-insert into `payments` (`id`, `source_account_id`, `destination_account_number`, `amount`, `currency`, `status`, `created_at`, `updated_at`)
-values
-    (101, 1001, 'ACC-20001', 1500.00, 'USD', 'SENT', '2026-07-27 10:30:00', '2026-07-27 10:35:00')
-on duplicate key update
-    `source_account_id` = values(`source_account_id`),
-    `destination_account_number` = values(`destination_account_number`),
-    `amount` = values(`amount`),
-    `currency` = values(`currency`),
-    `status` = values(`status`),
-    `created_at` = values(`created_at`),
-    `updated_at` = values(`updated_at`);
-
-insert into `payment_status_history` (`id`, `payment_id`, `previous_status`, `new_status`, `changed_at`, `notes`)
-values
-    (1001, 101, null, 'CREATED', '2026-07-27 10:30:00', 'Payment created successfully'),
-    (1002, 101, 'CREATED', 'VALIDATED', '2026-07-27 10:32:00', 'Payment request validated'),
-    (1003, 101, 'VALIDATED', 'SENT', '2026-07-27 10:35:00', 'Payment sent for processing')
-on duplicate key update
-    `payment_id` = values(`payment_id`),
-    `previous_status` = values(`previous_status`),
-    `new_status` = values(`new_status`),
-    `changed_at` = values(`changed_at`),
-    `notes` = values(`notes`);
-
-
-
+-- payment_status_history: 10 records
+INSERT INTO `payment_status_history` (`id`, `payment_id`, `previous_status`, `new_status`, `changed_at`, `notes`) VALUES
+(3001, 2001, 'CREATED',   'VALIDATED', '2026-07-27 10:02:00', 'Password verified'),
+(3002, 2002, 'VALIDATED', 'SENT',      '2026-07-27 10:08:00', 'Sent to clearing'),
+(3003, 2003, 'VALIDATED', 'FAILED',    '2026-07-27 10:12:00', 'Insufficient balance'),
+(3004, 2004, NULL,        'CREATED',   '2026-07-27 10:15:00', 'Payment created'),
+(3005, 2005, 'SENT',      'COMPLETED', '2026-07-27 10:25:00', 'Settlement success'),
+(3006, 2006, 'VALIDATED', 'SENT',      '2026-07-27 10:33:00', 'Sent to processor'),
+(3007, 2007, 'CREATED',   'VALIDATED', '2026-07-27 10:36:00', 'Risk check passed'),
+(3008, 2008, 'SENT',      'FAILED',    '2026-07-27 10:42:00', 'Channel timeout'),
+(3009, 2009, 'SENT',      'COMPLETED', '2026-07-27 10:50:00', 'Funds credited'),
+(3010, 2010, NULL,        'CREATED',   '2026-07-27 10:55:00', 'Payment initialized');
