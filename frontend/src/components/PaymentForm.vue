@@ -32,6 +32,18 @@
         <input id="currency" v-model.trim="form.currency" class="input" maxlength="3" placeholder="USD" />
         <p v-if="errors.currency" class="error-text">{{ errors.currency }}</p>
       </div>
+
+      <div>
+        <label class="label" for="paymentPassword">Payment Password</label>
+        <input
+          id="paymentPassword"
+          v-model.trim="form.paymentPassword"
+          class="input"
+          type="password"
+          placeholder="Enter payment password"
+        />
+        <p v-if="errors.paymentPassword" class="error-text">{{ errors.paymentPassword }}</p>
+      </div>
     </div>
 
     <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
@@ -59,14 +71,16 @@ const form = reactive<CreatePaymentRequest>({
   sourceAccountId: 0,
   destinationAccountId: 0,
   amount: 0,
-  currency: "USD"
+  currency: "USD",
+  paymentPassword: ""
 });
 
 const errors = reactive<Record<keyof CreatePaymentRequest, string>>({
   sourceAccountId: "",
   destinationAccountId: "",
   amount: "",
-  currency: ""
+  currency: "",
+  paymentPassword: ""
 });
 
 function clearErrors(): void {
@@ -74,6 +88,7 @@ function clearErrors(): void {
   errors.destinationAccountId = "";
   errors.amount = "";
   errors.currency = "";
+  errors.paymentPassword = "";
 }
 
 function validate(): boolean {
@@ -109,6 +124,11 @@ function validate(): boolean {
     ok = false;
   }
 
+  if (!form.paymentPassword || !form.paymentPassword.trim()) {
+    errors.paymentPassword = "Payment password is required.";
+    ok = false;
+  }
+
   return ok;
 }
 
@@ -121,7 +141,8 @@ function handleSubmit(): void {
     sourceAccountId: form.sourceAccountId,
     destinationAccountId: form.destinationAccountId,
     amount: Number(form.amount),
-    currency: form.currency.toUpperCase()
+    currency: form.currency.toUpperCase(),
+    paymentPassword: form.paymentPassword
   });
 }
 

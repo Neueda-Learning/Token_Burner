@@ -5,11 +5,17 @@
     <p v-if="!history.length" class="muted">No history records found.</p>
 
     <ol v-else class="timeline">
-      <li v-for="(item, index) in history" :key="`${item.status}-${item.updatedAt}-${index}`" class="item">
+      <li v-for="(item, index) in history" :key="`${item.historyId}-${index}`" class="item">
         <span class="dot" />
         <div class="content">
-          <StatusBadge :status="item.status" />
-          <p class="time">{{ formatDateTime(item.updatedAt) }}</p>
+          <div class="status-block">
+            <StatusBadge :status="item.newStatus" />
+            <p v-if="item.previousStatus" class="transition muted">{{ item.previousStatus }} -> {{ item.newStatus }}</p>
+          </div>
+          <div class="meta">
+            <p class="time">{{ formatDateTime(item.changedAt) }}</p>
+            <p v-if="item.notes" class="notes">{{ item.notes }}</p>
+          </div>
         </div>
       </li>
     </ol>
@@ -17,12 +23,12 @@
 </template>
 
 <script setup lang="ts">
-import type { PaymentHistoryItem } from "../api/payments";
+import type { PaymentHistoryResponse } from "../api/payments";
 import { formatDateTime } from "../utils/format";
 import StatusBadge from "./StatusBadge.vue";
 
 defineProps<{
-  history: PaymentHistoryItem[];
+  history: PaymentHistoryResponse[];
 }>();
 </script>
 
@@ -64,10 +70,32 @@ h2 {
   padding: 10px 12px;
 }
 
+.status-block {
+  display: grid;
+  gap: 4px;
+}
+
+.transition {
+  margin: 0;
+  font-size: 12px;
+}
+
+.meta {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+}
+
 .time {
   margin: 0;
   color: #5a6f88;
   font-size: 13px;
+}
+
+.notes {
+  margin: 0;
+  color: #374151;
+  font-size: 12px;
 }
 
 @media (max-width: 640px) {
@@ -75,6 +103,10 @@ h2 {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
+  }
+
+  .meta {
+    justify-items: start;
   }
 }
 </style>

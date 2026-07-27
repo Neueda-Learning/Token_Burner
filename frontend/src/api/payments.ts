@@ -13,22 +13,23 @@ export interface Payment {
   updatedAt: string;
 }
 
-export interface PaymentHistoryItem {
-  status: PaymentStatus;
-  updatedAt: string;
+export interface PaymentHistoryResponse {
+  historyId: number;
+  previousStatus: PaymentStatus | null;
+  newStatus: PaymentStatus;
+  changedAt: string;
+  notes: string | null;
 }
 
-export interface PaymentHistoryResponse {
+export interface PaymentHistoryListResponse {
   paymentId: number;
-  history: PaymentHistoryItem[];
+  history: PaymentHistoryResponse[];
 }
 
 export interface ErrorResponse {
-  timestamp: string;
-  status: number;
-  error: string;
   errorCode: string;
   message: string;
+  timestamp: string;
   path: string;
 }
 
@@ -37,10 +38,7 @@ export interface CreatePaymentRequest {
   destinationAccountId: number;
   amount: number;
   currency: string;
-}
-
-export interface UpdatePaymentStatusRequest {
-  status: PaymentStatus;
+  paymentPassword: string;
 }
 
 export interface UserPaymentsResponse {
@@ -58,20 +56,12 @@ export async function getPaymentById(paymentId: number): Promise<Payment> {
   return data;
 }
 
-export async function getPaymentHistory(paymentId: number): Promise<PaymentHistoryResponse> {
-  const { data } = await apiClient.get<PaymentHistoryResponse>(`/api/payments/${paymentId}/history`);
+export async function getPaymentHistory(paymentId: number): Promise<PaymentHistoryListResponse> {
+  const { data } = await apiClient.get<PaymentHistoryListResponse>(`/api/payments/${paymentId}/history`);
   return data;
 }
 
 export async function getPaymentsByUser(userId: number): Promise<UserPaymentsResponse | Payment[]> {
   const { data } = await apiClient.get<UserPaymentsResponse | Payment[]>(`/api/payments/user/${userId}`);
-  return data;
-}
-
-export async function updatePaymentStatus(
-  paymentId: number,
-  payload: UpdatePaymentStatusRequest
-): Promise<Payment> {
-  const { data } = await apiClient.put<Payment>(`/api/payments/${paymentId}/status`, payload);
   return data;
 }

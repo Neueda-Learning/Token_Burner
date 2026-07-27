@@ -2,16 +2,14 @@ import { defineStore } from "pinia";
 import type {
   CreatePaymentRequest,
   Payment,
-  PaymentHistoryItem,
-  PaymentStatus,
+  PaymentHistoryResponse,
   UserPaymentsResponse
 } from "../api/payments";
 import {
   createPayment,
   getPaymentById,
   getPaymentHistory,
-  getPaymentsByUser,
-  updatePaymentStatus
+  getPaymentsByUser
 } from "../api/payments";
 import type { ApiError } from "../api/client";
 
@@ -19,7 +17,7 @@ type LoadState = "idle" | "loading" | "success" | "error";
 
 interface PaymentStoreState {
   payment: Payment | null;
-  paymentHistory: PaymentHistoryItem[];
+  paymentHistory: PaymentHistoryResponse[];
   userPayments: Payment[];
   status: LoadState;
   errorMessage: string;
@@ -106,19 +104,6 @@ export const usePaymentStore = defineStore("payment", {
         } else {
           this.userPayments = (data as UserPaymentsResponse).payments ?? [];
         }
-        this.status = "success";
-      } catch (error) {
-        this.status = "error";
-        this.errorMessage = toErrorMessage(error);
-        throw error;
-      }
-    },
-
-    async changePaymentStatus(paymentId: number, status: PaymentStatus): Promise<void> {
-      this.status = "loading";
-      this.errorMessage = "";
-      try {
-        this.payment = await updatePaymentStatus(paymentId, { status });
         this.status = "success";
       } catch (error) {
         this.status = "error";

@@ -20,7 +20,6 @@
         <label class="label" for="paymentId">Payment ID</label>
         <input id="paymentId" v-model.number="paymentId" class="input" min="1" type="number" />
         <button class="btn btn-primary" type="submit">Open Payment</button>
-        <p class="muted hint">Update Payment Status is available inside Payment Detail.</p>
       </form>
 
       <form class="card" @submit.prevent="goPaymentHistory">
@@ -143,10 +142,5 @@ form {
 
 h2 {
   margin: 0;
-}
-
-.hint {
-  margin: 0;
-  font-size: 12px;
 }
 </style>
