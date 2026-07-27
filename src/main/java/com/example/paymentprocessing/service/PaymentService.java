@@ -1,7 +1,7 @@
 package com.example.paymentprocessing.service;
 
 /**
- * TODO Member C:
+ * TODO Richard:
  * Define the service contract for payment use cases.
  * Add method signatures for creation, retrieval, history lookup, and status updates later.
  *
@@ -15,6 +15,7 @@ package com.example.paymentprocessing.service;
  * Do not implement these responsibilities at this stage.
  */
 public interface PaymentService {
-    // TODO Add payment service method declarations for future validation, password verification, and history handling.
+    // TODO Add payment service method declarations.
+
 }
 
