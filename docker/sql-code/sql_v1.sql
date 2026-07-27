@@ -22,7 +22,7 @@ create table if not exists `payments`
 (
     `id`                     bigint auto_increment comment '支付ID' primary key,
     `source_account_id`      bigint                                not null comment '付款用户ID',
-    `destination_account_id` bigint                                not null comment '收款用户ID',
+    `destination_account_number` varchar(64)                       not null comment '收款账户号',
     `amount`                 decimal(18,2)                         not null comment '支付金额',
     `currency`               varchar(16)                           not null default 'USD' comment '币种',
     `status`                 varchar(32)                           not null default 'CREATED' comment '状态(CREATED/VALIDATED/SENT/COMPLETED/FAILED)',
@@ -30,15 +30,13 @@ create table if not exists `payments`
     `updated_at`             datetime                              not null default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP comment '更新时间',
 
     index `idx_source_account_id` (`source_account_id`),
-    index `idx_destination_account_id` (`destination_account_id`),
+    index `idx_destination_account_number` (`destination_account_number`),
     index `idx_status` (`status`),
     index `idx_created_at` (`created_at`),
     constraint `chk_payment_amount` check (`amount` > 0),
     constraint `chk_payment_status` check (`status` in ('CREATED', 'VALIDATED', 'SENT', 'COMPLETED', 'FAILED')),
     constraint `fk_payment_source_user_id`
-        foreign key (`source_account_id`) references `users` (`id`) on delete restrict,
-    constraint `fk_payment_destination_user_id`
-        foreign key (`destination_account_id`) references `users` (`id`) on delete restrict
+        foreign key (`source_account_id`) references `users` (`id`) on delete restrict
     ) engine = InnoDB default charset = utf8mb4 collate = utf8mb4_unicode_ci comment '支付';
 
 -- 支付状态历史表（payment_status_history）
@@ -61,9 +59,6 @@ create table if not exists `payment_status_history`
 
 
 
-
-
-
 -- 示例数据（对应文档示例记录）
 insert into `users` (`id`, `account_number`, `balance`, `status`, `payment_password_hash`, `created_at`, `updated_at`)
 values
@@ -77,12 +72,12 @@ on duplicate key update
     `created_at` = values(`created_at`),
     `updated_at` = values(`updated_at`);
 
-insert into `payments` (`id`, `source_account_id`, `destination_account_id`, `amount`, `currency`, `status`, `created_at`, `updated_at`)
+insert into `payments` (`id`, `source_account_id`, `destination_account_number`, `amount`, `currency`, `status`, `created_at`, `updated_at`)
 values
-    (101, 1001, 1002, 1500.00, 'USD', 'SENT', '2026-07-27 10:30:00', '2026-07-27 10:35:00')
+    (101, 1001, 'ACC-20001', 1500.00, 'USD', 'SENT', '2026-07-27 10:30:00', '2026-07-27 10:35:00')
 on duplicate key update
     `source_account_id` = values(`source_account_id`),
-    `destination_account_id` = values(`destination_account_id`),
+    `destination_account_number` = values(`destination_account_number`),
     `amount` = values(`amount`),
     `currency` = values(`currency`),
     `status` = values(`status`),
