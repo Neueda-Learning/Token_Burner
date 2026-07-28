@@ -72,5 +72,10 @@ h2 {
   display: flex;
   gap: 10px;
   align-items: center;
+  margin-top: 12px;
+}
+
+.actions .btn {
+  text-decoration: none;
 }
 </style>

@@ -36,6 +36,9 @@ const className = computed(() => {
   display: inline-flex;
   align-items: center;
   padding: 4px 10px;
+  width: fit-content;
+  max-width: 100%;
+  white-space: nowrap;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;

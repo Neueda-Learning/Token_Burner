@@ -10,8 +10,10 @@
       <p><span class="muted">Destination Account:</span> {{ payment.destinationAccountId }}</p>
       <p><span class="muted">Amount:</span> {{ formattedAmount }}</p>
       <p><span class="muted">Currency:</span> {{ payment.currency }}</p>
-      <p><span class="muted">Created:</span> {{ formatDateTime(payment.createdAt) }}</p>
-      <p><span class="muted">Updated:</span> {{ formatDateTime(payment.updatedAt) }}</p>
+      <div class="time-row">
+        <p class="time-item"><span class="muted">Created:</span> {{ formatDateTime(payment.createdAt) }}</p>
+        <p class="time-item"><span class="muted">Updated:</span> {{ formatDateTime(payment.updatedAt) }}</p>
+      </div>
     </div>
 
     <div v-if="showActions" class="actions">
@@ -63,6 +65,19 @@ const showActions = computed(() => props.showActions ?? true);
 
 .grid p {
   margin: 0;
+}
+
+.time-row {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: nowrap;
+}
+
+.time-item {
+  margin: 0;
+  white-space: nowrap;
 }
 
 .actions {
