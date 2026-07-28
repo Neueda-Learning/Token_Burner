@@ -16,11 +16,11 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
      * A payment belongs to a user when the user is either the source account or the destination account.
      *
      * @param sourceAccountId the ID of the user as source account
-     * @param destinationAccountNumber the account number of the user as destination account
+     * @param destinationAccountId the ID of the user as destination account
      * @return a list of payments where the user is either source or destination
      */
-    List<Payment> findBySourceAccount_IdOrDestinationAccountNumber(
+    List<Payment> findBySourceAccount_IdOrDestinationAccountId(
             Long sourceAccountId,
-            String destinationAccountNumber
+            Long destinationAccountId
     );
 }
