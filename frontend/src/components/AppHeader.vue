@@ -3,7 +3,7 @@
     <div class="inner">
       <RouterLink :to="{ name: 'dashboard' }" class="brand">
         <img :src="logoUrl" alt="Logo" class="logo" />
-        <span>Payment Processing System</span>
+        <span>TransiPay</span>
       </RouterLink>
       <nav class="nav">
         <RouterLink :to="{ name: 'dashboard' }" class="nav-link">Dashboard</RouterLink>
@@ -56,7 +56,7 @@ import logoUrl from "../assets/logo.jpg";
 .logo {
   width: 80px;
   height: 80px;
-  margin-left: -28px;
+  margin-left: -18px;
   display: block;
 }
 
