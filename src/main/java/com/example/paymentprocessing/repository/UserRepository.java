@@ -1,16 +1,29 @@
 package com.example.paymentprocessing.repository;
 
+import com.example.paymentprocessing.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
 /**
- * TODO Kylian:
- * Define repository operations for user persistence and lookup.
- * Add Spring Data repository inheritance and query methods later.
- * Future responsibilities:
- * - Retrieve user information required for payment verification.
- * - Access the stored payment password hash when verification is required.
- * Do not define repository methods yet.
+ * Repository for User entity persistence and lookup operations.
+ * Provides methods for retrieving user information required for payment verification
+ * and accessing stored payment password hash when verification is required.
  */
-public interface UserRepository {
-    // TODO Add user repository method declarations for future payment verification support.
+public interface UserRepository extends JpaRepository<User, Long> {
+
+    /**
+     * Find a user by their account number.
+     *
+     * Needed to resolve a destination account number back into a User,
+     * both when validating the destination user on createPayment and when
+     * mapping Payment.destinationAccountNumber back to
+     * PaymentResponse.destinationAccountId.
+     *
+     * @param accountNumber the account number to search for
+     * @return an Optional containing the User if found, or empty Optional if not found
+     */
+    Optional<User> findByAccountNumber(String accountNumber);
 }
 
 
