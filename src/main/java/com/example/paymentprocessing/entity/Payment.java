@@ -1,7 +1,5 @@
 package com.example.paymentprocessing.entity;
-/**
- * TODO Kylian:
- */
+
 import com.example.paymentprocessing.enums.PaymentStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,6 +18,19 @@ import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * JPA entity representing the {@code payments} table.
+ * <p>
+ * This entity stores only payment transaction data. Payment password
+ * verification happens before creation, but neither the plain text password
+ * nor a password hash is ever stored in this table.
+ * </p>
+ * <p>
+ * {@code destinationAccountNumber} is a snapshot of the receiving account
+ * number and intentionally has no foreign key constraint, matching
+ * docs/database-design.md and docker/sql-code/sql_v1.sql.
+ * </p>
+ */
 @Entity
 @Table(name = "payments")
 public class Payment {

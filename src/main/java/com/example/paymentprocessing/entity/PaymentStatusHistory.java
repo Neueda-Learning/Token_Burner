@@ -1,17 +1,5 @@
 package com.example.paymentprocessing.entity;
 
-/**
- * TODO Kylian:
- * Define the payment status history entity structure for lifecycle tracking.
- * Add fields, JPA mapping, and persistence-related annotations later.
- * Future fields should align with the database and API history semantics, including:
- * - id
- * - paymentId
- * - previousStatus
- * - newStatus
- * - changedAt
- * - notes
- */
 import com.example.paymentprocessing.enums.PaymentStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,6 +16,14 @@ import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
 
+/**
+ * JPA entity representing the {@code payment_status_history} table.
+ * <p>
+ * Each row records one lifecycle transition for a payment. This entity is for
+ * status history only and must not store sensitive information such as payment
+ * passwords or password hashes.
+ * </p>
+ */
 @Entity
 @Table(name = "payment_status_history")
 public class PaymentStatusHistory {
@@ -109,5 +105,4 @@ public class PaymentStatusHistory {
         this.notes = notes;
     }
 }
-
 

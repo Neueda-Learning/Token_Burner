@@ -1,11 +1,15 @@
 package com.example.paymentprocessing.dto.request;
 
-/**
- * TODO Leon:
- * Define the request DTO for updating a payment status.
- * Add request fields and validation annotations later.
- */
-public class UpdatePaymentStatusRequest {
-    // TODO Add update payment status request fields.
-}
+import com.example.paymentprocessing.enums.PaymentStatus;
 
+/**
+ * Request DTO for updating a payment lifecycle status.
+ * <p>
+ * TODO later: add validation to ensure a status value is provided and that
+ * transition rules are enforced in the service layer.
+ * </p>
+ */
+public record UpdatePaymentStatusRequest(
+        PaymentStatus status
+) {
+}

@@ -1,22 +1,23 @@
 package com.example.paymentprocessing.dto.request;
 
-/**
- * TODO Leon:
- * Define the request DTO for creating a payment.
- * Add request fields and validation annotations later.
- *
- * Future fields:
- * - sourceAccountId
- * - destinationAccountId
- * - amount
- * - currency
- * - paymentPassword
- *
- * Security rule:
- * - paymentPassword is only a temporary request field.
- * - paymentPassword must never be stored in the database.
- */
-public class CreatePaymentRequest {
-    // TODO Add create payment request fields, including a temporary paymentPassword input field.
-}
+import java.math.BigDecimal;
 
+/**
+ * Request DTO for creating a payment.
+ * <p>
+ * {@code paymentPassword} exists only for request-time verification. It must
+ * never be stored in the database and must never appear in any response DTO.
+ * </p>
+ * <p>
+ * TODO later: add validation for required account IDs, positive amount, and
+ * supported currency format.
+ * </p>
+ */
+public record CreatePaymentRequest(
+        Long sourceAccountId,
+        Long destinationAccountId,
+        BigDecimal amount,
+        String currency,
+        String paymentPassword
+) {
+}

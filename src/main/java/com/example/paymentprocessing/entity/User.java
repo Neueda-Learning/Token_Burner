@@ -1,7 +1,5 @@
 package com.example.paymentprocessing.entity;
-/**
- * TODO Kylian:
- */
+
 import com.example.paymentprocessing.enums.UserStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
@@ -18,6 +16,15 @@ import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * JPA entity representing the {@code users} table.
+ * <p>
+ * This model stores account-related user data, including only the hashed
+ * payment password. Plain text payment passwords must never be persisted,
+ * and {@code paymentPasswordHash} is annotated with {@code @JsonIgnore} so
+ * it is never serialized into an HTTP response.
+ * </p>
+ */
 @Entity
 @Table(name = "users")
 public class User {

@@ -1,19 +1,22 @@
 package com.example.paymentprocessing.dto.response;
 
-/**
- * TODO Leon:
- * Define the response DTO for returning payment status history.
- * Add response fields and nested history representation later.
- * Future response shape should align with history record semantics, such as:
- * - paymentId
- * - history[].historyId
- * - history[].previousStatus
- * - history[].newStatus
- * - history[].changedAt
- * - history[].notes
- * Do not use payment-level updatedAt for history entries.
- */
-public class PaymentHistoryResponse {
-    // TODO Add payment history response fields using changedAt-based history semantics.
-}
+import com.example.paymentprocessing.enums.PaymentStatus;
 
+import java.time.LocalDateTime;
+
+/**
+ * Response DTO for a single payment history record.
+ * <p>
+ * History records use {@code changedAt} to represent the time of the status
+ * transition. They should not reuse payment-level {@code updatedAt} semantics.
+ * </p>
+ */
+public record PaymentHistoryResponse(
+        Long historyId,
+        Long paymentId,
+        PaymentStatus previousStatus,
+        PaymentStatus newStatus,
+        LocalDateTime changedAt,
+        String notes
+) {
+}
