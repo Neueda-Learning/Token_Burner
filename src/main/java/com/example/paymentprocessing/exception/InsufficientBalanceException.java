@@ -1,12 +1,20 @@
 package com.example.paymentprocessing.exception;
 
 /**
- * TODO Leon:
- * Define the exception type used when the source account balance is insufficient.
- * Add inheritance, constructors, and message handling later.
- * This class is a placeholder to stabilize team package structure before parallel development.
+ * Business exception thrown when the source account balance is insufficient.
  */
-public class InsufficientBalanceException {
-    // TODO Define insufficient balance exception details.
+public class InsufficientBalanceException extends RuntimeException {
+
+    public InsufficientBalanceException() {
+        super("Insufficient balance for this payment.");
+    }
+
+    public InsufficientBalanceException(String message) {
+        super(message);
+    }
+
+    public InsufficientBalanceException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
 
