@@ -45,14 +45,14 @@ set SPRING_PROFILES_ACTIVE=mock
 
 | paymentId | sourceAccountId | destinationAccountId | amount | status |
 |---|---|---|---|---|
-| 1001 | 1 | 2 | 100.00 | `CREATED` |
-| 1002 | 2 | 3 | 250.50 | `VALIDATED` |
+| 101 | 1001 | 1002 | 1500.00 | `COMPLETED` |
+| 102 | 1003 | 1001 | 275.50 | `SENT` |
 
 ## 用来触发各种异常的测试数据
 
 | 想触发的异常 | 怎么构造请求 |
 |---|---|
-| `UserNotFoundException` | `sourceAccountId` 或 `destinationAccountId` 不是 `1`、`2`、`3`、`99` 中的任何一个 |
+| `UserNotFoundException` | `sourceAccountId` 或 `destinationAccountId` 不是 `1001`、`1002`、`1003`、`99` 中的任何一个 |
 | `InvalidAccountStatusException` | `sourceAccountId` 或 `destinationAccountId` 使用保留的"未激活"用户 ID `99` |
 | `InvalidPaymentAmountException` | `amount` 小于等于 `0` |
 | `InvalidPaymentPasswordException` | `paymentPassword` 不等于固定的 mock 密码 `888888` |
@@ -60,7 +60,7 @@ set SPRING_PROFILES_ACTIVE=mock
 | `PaymentNotFoundException` | `getPaymentById` / `getPaymentHistory` / `updatePaymentStatus` 使用一个不存在的 `paymentId`（种子数据之外的 ID） |
 | `InvalidPaymentStatusException` | `updatePaymentStatus` 传入一个不允许的状态跳转，例如把 `CREATED` 直接改成 `COMPLETED` |
 
-合法的支付密码是固定值 `888888`，账号 `1`、`2`、`3` 视为已激活账户，
+合法的支付密码是固定值 `888888`，账号 `1001`、`1002`、`1003` 视为已激活账户，
 账号 `99` 视为未激活账户，用来测试异常分支。
 
 ## 状态流转规则（未变化）
@@ -80,11 +80,14 @@ set SPRING_PROFILES_ACTIVE=mock
 
 创建一笔成功的支付：
 
-```json
+```http
 POST /api/payments
+```
+
+```json
 {
-  "sourceAccountId": 1,
-  "destinationAccountId": 2,
+  "sourceAccountId": 1001,
+  "destinationAccountId": 1002,
   "amount": 500.00,
   "currency": "USD",
   "paymentPassword": "888888"
@@ -93,11 +96,14 @@ POST /api/payments
 
 触发 `InvalidPaymentPasswordException`：
 
-```json
+```http
 POST /api/payments
+```
+
+```json
 {
-  "sourceAccountId": 1,
-  "destinationAccountId": 2,
+  "sourceAccountId": 1001,
+  "destinationAccountId": 1002,
   "amount": 500.00,
   "currency": "USD",
   "paymentPassword": "wrong-password"
