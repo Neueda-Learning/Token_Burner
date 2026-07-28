@@ -39,16 +39,18 @@ const userId = computed(() => Number(route.params.userId));
 const searchUserId = ref<number | null>(null);
 const isLoading = computed(() => store.status === "loading");
 
-async function loadUserPayments(): Promise<void> {
-  if (!Number.isInteger(userId.value) || userId.value <= 0) {
+async function loadUserPayments(currentUserId: number): Promise<void> {
+  if (!Number.isInteger(currentUserId) || currentUserId <= 0) {
+    store.userPayments = [];
+    store.status = "error";
     store.errorMessage = "Invalid user ID.";
     return;
   }
 
-  searchUserId.value = userId.value;
+  searchUserId.value = currentUserId;
 
   try {
-    await store.fetchPaymentsByUser(userId.value);
+    await store.fetchPaymentsByUser(currentUserId);
   } catch {
     // Error state is shown from store.
   }
@@ -63,9 +65,13 @@ async function handleSearch(): Promise<void> {
 }
 
 watch(
-  () => route.params.userId,
-  async () => {
-    await loadUserPayments();
+  () => [route.name, route.params.userId] as const,
+  async ([routeName, routeUserId]) => {
+    if (routeName !== "user-payments") {
+      return;
+    }
+
+    await loadUserPayments(Number(routeUserId));
   },
   { immediate: true }
 );

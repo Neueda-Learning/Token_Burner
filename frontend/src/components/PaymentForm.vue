@@ -137,13 +137,22 @@ function handleSubmit(): void {
     return;
   }
 
-  emit("submit", {
+  const payload = {
     sourceAccountId: form.sourceAccountId,
     destinationAccountId: form.destinationAccountId,
     amount: Number(form.amount),
     currency: form.currency.toUpperCase(),
     paymentPassword: form.paymentPassword
+  };
+
+  console.debug("[payment:create:submit]", {
+    payload: {
+      ...payload,
+      paymentPassword: "***masked***"
+    }
   });
+
+  emit("submit", payload);
 }
 
 void props;
