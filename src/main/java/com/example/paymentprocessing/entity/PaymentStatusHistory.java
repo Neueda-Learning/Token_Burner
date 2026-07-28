@@ -25,9 +25,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "payment_status_history")
 public class PaymentStatusHistory {
@@ -60,54 +66,4 @@ public class PaymentStatusHistory {
             changedAt = LocalDateTime.now();
         }
     }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Payment getPayment() {
-        return payment;
-    }
-
-    public void setPayment(Payment payment) {
-        this.payment = payment;
-    }
-
-    public PaymentStatus getPreviousStatus() {
-        return previousStatus;
-    }
-
-    public void setPreviousStatus(PaymentStatus previousStatus) {
-        this.previousStatus = previousStatus;
-    }
-
-    public PaymentStatus getNewStatus() {
-        return newStatus;
-    }
-
-    public void setNewStatus(PaymentStatus newStatus) {
-        this.newStatus = newStatus;
-    }
-
-    public LocalDateTime getChangedAt() {
-        return changedAt;
-    }
-
-    public void setChangedAt(LocalDateTime changedAt) {
-        this.changedAt = changedAt;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
 }
-
-
