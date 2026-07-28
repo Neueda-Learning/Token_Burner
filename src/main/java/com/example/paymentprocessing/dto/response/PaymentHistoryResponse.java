@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
  */
 public record PaymentHistoryResponse(
         Long historyId,
+        Long paymentId,
         PaymentStatus previousStatus,
         PaymentStatus newStatus,
         LocalDateTime changedAt,
