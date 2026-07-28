@@ -5,7 +5,14 @@
       <form class="search-form" @submit.prevent="handleSearch">
         <div>
           <label class="label" for="userId">User ID</label>
-          <input id="userId" v-model.number="searchUserId" class="input" min="1" type="number" />
+          <input
+            id="userId"
+            v-model.number="searchUserId"
+            class="input"
+            min="1"
+            type="number"
+            placeholder="Enter user ID"
+          />
         </div>
         <button class="btn btn-primary" type="submit">Search</button>
       </form>
