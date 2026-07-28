@@ -16,7 +16,7 @@
 
     <div class="grid">
       <form class="card" @submit.prevent="goPaymentDetail">
-        <h2>Find Payment by ID</h2>
+        <h2>Search Payment by ID</h2>
         <label class="label" for="paymentId">Payment ID</label>
         <input
           id="paymentId"
@@ -26,11 +26,11 @@
           type="number"
           placeholder="Enter payment ID"
         />
-        <button class="btn btn-primary" type="submit">Open Payment</button>
+        <button class="btn btn-primary" type="submit">View Payment</button>
       </form>
 
       <form class="card" @submit.prevent="goPaymentHistory">
-        <h2>Get Payment History</h2>
+        <h2>Search Payment History</h2>
         <label class="label" for="historyPaymentId">Payment ID</label>
         <input
           id="historyPaymentId"
@@ -40,11 +40,11 @@
           type="number"
           placeholder="Enter payment ID"
         />
-        <button class="btn btn-primary" type="submit">Open Payment History</button>
+        <button class="btn btn-primary" type="submit">View History</button>
       </form>
 
       <form class="card" @submit.prevent="goUserPayments">
-        <h2>Find Payments by User</h2>
+        <h2>Search Payments by User</h2>
         <label class="label" for="userId">User ID</label>
         <input
           id="userId"
@@ -54,7 +54,7 @@
           type="number"
           placeholder="Enter user ID"
         />
-        <button class="btn btn-primary" type="submit">Open User Payments</button>
+        <button class="btn btn-primary" type="submit">View User Payments</button>
       </form>
     </div>
   </section>
