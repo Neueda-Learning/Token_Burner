@@ -14,7 +14,7 @@ Mock 实现：`MockPaymentServiceImpl`。它实现了和真实实现完全一样
 
 `MockPaymentServiceImpl` 只在 Spring 的 `mock` profile 被激活时才会生效；
 真实的 `PaymentServiceImpl` 则只在 `mock` profile **未**激活时生效
-（两者用 `@Profile` 互斥，不会同时注册导致 Bean 冲突）。
+（两者用 `@Profile` 互斥，不会同时注册导致 Bean 冲突）.
 
 启用方式（三选一）：
 
