@@ -1,12 +1,22 @@
 package com.example.paymentprocessing.exception;
 
+import com.example.paymentprocessing.enums.PaymentStatus;
+
 /**
- * TODO Leon:
- * Define the exception type used for invalid payment status changes.
- * Add inheritance, constructors, and message handling later.
- * This class remains a placeholder for future exception handling setup.
+ * Business exception thrown for invalid payment status changes.
  */
-public class InvalidPaymentStatusException {
-    // TODO Define invalid payment status exception details.
+public class InvalidPaymentStatusException extends RuntimeException {
+
+    public InvalidPaymentStatusException(PaymentStatus fromStatus, PaymentStatus toStatus) {
+        super("Invalid payment status transition: %s -> %s.".formatted(fromStatus, toStatus));
+    }
+
+    public InvalidPaymentStatusException(String message) {
+        super(message);
+    }
+
+    public InvalidPaymentStatusException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
 

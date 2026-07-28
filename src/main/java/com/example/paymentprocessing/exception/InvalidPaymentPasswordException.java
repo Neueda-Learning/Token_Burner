@@ -1,12 +1,20 @@
 package com.example.paymentprocessing.exception;
 
 /**
- * TODO Leon:
- * Define the exception type used when payment password verification fails.
- * Add inheritance, constructors, and message handling later.
- * This class is a placeholder to stabilize team package structure before parallel development.
+ * Business exception thrown when payment password verification fails.
  */
-public class InvalidPaymentPasswordException {
-    // TODO Define invalid payment password exception details.
+public class InvalidPaymentPasswordException extends RuntimeException {
+
+    public InvalidPaymentPasswordException() {
+        super("Payment password verification failed.");
+    }
+
+    public InvalidPaymentPasswordException(String message) {
+        super(message);
+    }
+
+    public InvalidPaymentPasswordException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
 

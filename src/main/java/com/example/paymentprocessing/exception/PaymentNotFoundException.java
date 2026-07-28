@@ -1,12 +1,20 @@
 package com.example.paymentprocessing.exception;
 
 /**
- * TODO Leon:
- * Define the exception type used when a payment cannot be found.
- * Add inheritance, constructors, and message handling later.
- * This class remains a placeholder for future exception handling setup.
+ * Business exception thrown when a payment cannot be found.
  */
-public class PaymentNotFoundException {
-    // TODO Define payment not found exception details.
+public class PaymentNotFoundException extends RuntimeException {
+
+    public PaymentNotFoundException(Long paymentId) {
+        super("Payment with id %d was not found.".formatted(paymentId));
+    }
+
+    public PaymentNotFoundException(String message) {
+        super(message);
+    }
+
+    public PaymentNotFoundException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
 
