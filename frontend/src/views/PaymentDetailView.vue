@@ -6,12 +6,12 @@
       <p v-if="isLoading" class="muted">Loading payment...</p>
       <p v-else-if="store.errorMessage" class="error-text">{{ store.errorMessage }}</p>
 
-      <PaymentCard v-else-if="store.payment" :payment="store.payment" />
+      <PaymentCard v-else-if="store.payment" :payment="store.payment" :show-actions="false" />
 
       <p v-else class="muted">No payment data found.</p>
 
       <div v-if="store.payment" class="actions">
-        <RouterLink :to="`/payments/${paymentId}/history`" class="btn btn-secondary">View History</RouterLink>
+        <RouterLink :to="`/payments/${paymentId}/history`" class="btn btn-secondary">History</RouterLink>
       </div>
     </div>
   </section>
@@ -72,5 +72,10 @@ h2 {
   display: flex;
   gap: 10px;
   align-items: center;
+  margin-top: 12px;
+}
+
+.actions .btn {
+  text-decoration: none;
 }
 </style>

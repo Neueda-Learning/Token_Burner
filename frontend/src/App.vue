@@ -6,12 +6,14 @@
         <component v-if="Component" :is="Component" />
       </RouterView>
     </main>
+    <AppFooter />
   </div>
 </template>
 
 <script setup lang="ts">
 import { RouterView } from "vue-router";
 import AppHeader from "./components/AppHeader.vue";
+import AppFooter from "./components/AppFooter.vue";
 </script>
 
 <style>
@@ -46,9 +48,12 @@ a {
 
 .app-shell {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .content-wrap {
+  flex: 1;
   width: min(1100px, 94vw);
   margin: 24px auto 40px;
 }

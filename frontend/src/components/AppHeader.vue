@@ -1,8 +1,10 @@
 <template>
   <header class="header">
     <div class="inner">
-      <RouterLink :to="{ name: 'dashboard' }" class="brand">Payment Processing System</RouterLink>
-
+      <RouterLink :to="{ name: 'dashboard' }" class="brand">
+        <img :src="logoUrl" alt="Logo" class="logo" />
+        <span>TransiPay</span>
+      </RouterLink>
       <nav class="nav">
         <RouterLink :to="{ name: 'dashboard' }" class="nav-link">Dashboard</RouterLink>
         <RouterLink :to="{ name: 'create-payment' }" class="nav-link">Create Payment</RouterLink>
@@ -13,6 +15,7 @@
 
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
+import logoUrl from "../assets/logo.jpg";
 </script>
 
 <style scoped>
@@ -37,9 +40,24 @@ import { RouterLink } from "vue-router";
 }
 
 .brand {
-  font-weight: 700;
+  display: inline-flex;
   text-decoration: none;
-  letter-spacing: 0.3px;
+  color: #fff;
+  align-items: center;
+  gap: 26px;
+}
+
+.brand span {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.logo {
+  width: 80px;
+  height: 80px;
+  margin-left: -18px;
+  display: block;
 }
 
 .nav {
