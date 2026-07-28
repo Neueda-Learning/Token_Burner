@@ -1,5 +1,7 @@
 package com.example.paymentprocessing.entity;
-
+/**
+ * TODO Kylian:
+ */
 import com.example.paymentprocessing.enums.PaymentStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,23 +16,16 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * JPA entity representing the {@code payments} table.
- * <p>
- * This entity stores only payment transaction data. Payment password
- * verification happens before creation, but neither the plain text password
- * nor a password hash is ever stored in this table.
- * </p>
- * <p>
- * {@code destinationAccountNumber} is a snapshot of the receiving account
- * number and intentionally has no foreign key constraint, matching
- * docs/database-design.md and docker/sql-code/sql_v1.sql.
- * </p>
- */
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "payments")
 public class Payment {
@@ -43,8 +38,8 @@ public class Payment {
     @JoinColumn(name = "source_account_id", nullable = false)
     private User sourceAccount;
 
-    @Column(name = "destination_account_number", nullable = false, length = 64)
-    private String destinationAccountNumber;
+    @Column(name = "destination_account_id", nullable = false)
+    private Long destinationAccountId;
 
     @Column(nullable = false, precision = 18, scale = 2)
     private BigDecimal amount;
@@ -82,69 +77,5 @@ public class Payment {
     @PreUpdate
     void preUpdate() {
         updatedAt = LocalDateTime.now();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public User getSourceAccount() {
-        return sourceAccount;
-    }
-
-    public void setSourceAccount(User sourceAccount) {
-        this.sourceAccount = sourceAccount;
-    }
-
-    public String getDestinationAccountNumber() {
-        return destinationAccountNumber;
-    }
-
-    public void setDestinationAccountNumber(String destinationAccountNumber) {
-        this.destinationAccountNumber = destinationAccountNumber;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
-
-    public PaymentStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(PaymentStatus status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 }

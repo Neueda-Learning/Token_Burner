@@ -6,13 +6,23 @@ import com.example.paymentprocessing.dto.response.PaymentHistoryResponse;
 import com.example.paymentprocessing.dto.response.PaymentResponse;
 import com.example.paymentprocessing.entity.Payment;
 import com.example.paymentprocessing.entity.PaymentStatusHistory;
+import com.example.paymentprocessing.entity.User;
 import com.example.paymentprocessing.enums.PaymentStatus;
+import com.example.paymentprocessing.enums.UserStatus;
+import com.example.paymentprocessing.exception.InsufficientBalanceException;
+import com.example.paymentprocessing.exception.InvalidAccountStatusException;
+import com.example.paymentprocessing.exception.InvalidPaymentAmountException;
+import com.example.paymentprocessing.exception.InvalidPaymentPasswordException;
+import com.example.paymentprocessing.exception.InvalidPaymentStatusException;
+import com.example.paymentprocessing.exception.PaymentNotFoundException;
+import com.example.paymentprocessing.exception.UserNotFoundException;
 import com.example.paymentprocessing.repository.PaymentRepository;
 import com.example.paymentprocessing.repository.PaymentStatusHistoryRepository;
 import com.example.paymentprocessing.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
@@ -46,93 +56,104 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public PaymentResponse createPayment(CreatePaymentRequest request) {
-        // Blocked dependencies (per docs/service-contract.md section 2.1):
-        // 1. CreatePaymentRequest still has no fields (sourceAccountId, destinationAccountId,
-        //    amount, currency, paymentPassword) or getters.
-        // 2. PaymentResponse still has no fields to map to.
-        // 3. PaymentRepository/UserRepository do not expose save/find methods yet.
-        // 4. UserNotFoundException, InvalidPaymentPasswordException, InsufficientBalanceException,
-        //    InvalidPaymentAmountException, InvalidAccountStatusException are still empty placeholder classes.
-        // 5. Payment entity currently models destinationAccountNumber instead of destinationAccountId,
-        //    which does not match the SQL/API design referenced by this contract.
-        //
-        // Planned implementation once dependencies are ready:
-        // 1. Load the source user and destination user; throw UserNotFoundException if missing.
-        // 2. Verify request.paymentPassword() against sourceUser.getPaymentPasswordHash();
-        //    throw InvalidPaymentPasswordException on mismatch.
-        // 3. Validate account status (InvalidAccountStatusException) and amount (InvalidPaymentAmountException),
-        //    and check balance if required (InsufficientBalanceException).
-        // 4. Build a Payment entity with status = CREATED and persist it.
-        // 5. Persist the first PaymentStatusHistory row with previousStatus = null, newStatus = CREATED.
-        // 6. Map the saved Payment entity to PaymentResponse and return it.
-        throw new UnsupportedOperationException("Not implemented yet");
+        User sourceUser = userRepository.findById(request.sourceAccountId())
+                .orElseThrow(() -> new UserNotFoundException(request.sourceAccountId()));
+        User destinationUser = userRepository.findById(request.destinationAccountId())
+                .orElseThrow(() -> new UserNotFoundException(request.destinationAccountId()));
+
+        if (sourceUser.getStatus() != UserStatus.ACTIVE || destinationUser.getStatus() != UserStatus.ACTIVE) {
+            throw new InvalidAccountStatusException();
+        }
+
+        if (request.amount() == null || request.amount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidPaymentAmountException();
+        }
+
+        // No PasswordEncoder is configured in this training project, so the payment password
+        // is compared directly against the stored hash, per docs/service-contract.md section 2.1.
+        if (!Objects.equals(request.paymentPassword(), sourceUser.getPaymentPasswordHash())) {
+            throw new InvalidPaymentPasswordException();
+        }
+
+        if (sourceUser.getBalance().compareTo(request.amount()) < 0) {
+            throw new InsufficientBalanceException();
+        }
+
+        Payment payment = new Payment();
+        payment.setSourceAccount(sourceUser);
+        payment.setDestinationAccountId(request.destinationAccountId());
+        payment.setAmount(request.amount());
+        payment.setCurrency(request.currency());
+        Payment savedPayment = paymentRepository.save(payment);
+
+        PaymentStatusHistory history = buildHistoryRecord(
+                savedPayment,
+                null,
+                savedPayment.getStatus(),
+                buildTransitionNotes(savedPayment.getStatus())
+        );
+        paymentStatusHistoryRepository.save(history);
+
+        return mapToPaymentResponse(savedPayment);
     }
 
     @Override
     @Transactional(readOnly = true)
     public PaymentResponse getPaymentById(Long paymentId) {
-        // Blocked dependencies (per docs/service-contract.md section 2.2):
-        // 1. PaymentResponse is still an empty placeholder.
-        // 2. PaymentRepository does not define findById yet.
-        // 3. PaymentNotFoundException is still an empty placeholder class.
-        //
-        // Planned implementation once dependencies are ready:
-        // 1. Load the payment by ID.
-        // 2. Throw PaymentNotFoundException when the payment does not exist.
-        // 3. Map the entity to PaymentResponse and return it.
-        throw new UnsupportedOperationException("Not implemented yet");
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new PaymentNotFoundException(paymentId));
+        return mapToPaymentResponse(payment);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<PaymentHistoryResponse> getPaymentHistory(Long paymentId) {
-        // Blocked dependencies (per docs/service-contract.md section 2.3):
-        // 1. PaymentHistoryResponse is still an empty placeholder.
-        // 2. PaymentRepository does not define findById yet.
-        // 3. PaymentStatusHistoryRepository does not define a history lookup method yet.
-        // 4. PaymentNotFoundException is still an empty placeholder class.
-        //
-        // Planned implementation once dependencies are ready:
-        // 1. Verify the payment exists; throw PaymentNotFoundException if not.
-        // 2. Load all PaymentStatusHistory rows for this payment, sorted by changedAt ascending.
-        // 3. Map each entity to a PaymentHistoryResponse and return the list.
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (!paymentRepository.existsById(paymentId)) {
+            throw new PaymentNotFoundException(paymentId);
+        }
+
+        return paymentStatusHistoryRepository.findByPayment_IdOrderByChangedAtAsc(paymentId).stream()
+                .map(this::mapToHistoryResponse)
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<PaymentResponse> getPaymentsByUser(Long userId) {
-        // Blocked dependencies (per docs/service-contract.md section 2.4):
-        // 1. PaymentResponse is still an empty placeholder.
-        // 2. UserRepository does not define an existence-check method yet.
-        // 3. PaymentRepository does not define a query by source/destination account yet.
-        // 4. Payment entity cannot currently represent destinationAccountId as designed.
-        //
-        // Planned implementation once dependencies are ready:
-        // 1. Optionally verify the user exists; throw UserNotFoundException if user verification is implemented.
-        // 2. Load all payments where sourceAccountId = userId or destinationAccountId = userId.
-        // 3. Return an empty list when the user exists but has no payments (do not throw in that case).
-        // 4. Map each entity to PaymentResponse and return the list.
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (!userRepository.existsById(userId)) {
+            throw new UserNotFoundException(userId);
+        }
+
+        return paymentRepository.findBySourceAccount_IdOrDestinationAccountId(userId, userId).stream()
+                .map(this::mapToPaymentResponse)
+                .toList();
     }
 
     @Override
     @Transactional
     public PaymentResponse updatePaymentStatus(Long paymentId, UpdatePaymentStatusRequest request) {
-        // Blocked dependencies (per docs/service-contract.md section 2.5):
-        // 1. UpdatePaymentStatusRequest still has no status field or getter.
-        // 2. PaymentResponse is still an empty placeholder.
-        // 3. PaymentRepository/PaymentStatusHistoryRepository do not define persistence methods yet.
-        // 4. PaymentNotFoundException and InvalidPaymentStatusException are still empty placeholder classes.
-        //
-        // Planned implementation once dependencies are ready:
-        // 1. Load the payment by ID; throw PaymentNotFoundException if missing.
-        // 2. Validate the requested transition using isTransitionAllowed(...);
-        //    throw InvalidPaymentStatusException with buildInvalidTransitionMessage(...) if invalid.
-        // 3. Update the payment status.
-        // 4. Persist a PaymentStatusHistory row built with buildHistoryRecord(...).
-        // 5. Map the updated payment to PaymentResponse and return it.
-        throw new UnsupportedOperationException("Not implemented yet");
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new PaymentNotFoundException(paymentId));
+
+        PaymentStatus currentStatus = payment.getStatus();
+        PaymentStatus targetStatus = request.status();
+
+        if (!isTransitionAllowed(currentStatus, targetStatus)) {
+            throw new InvalidPaymentStatusException(buildInvalidTransitionMessage(currentStatus, targetStatus));
+        }
+
+        payment.setStatus(targetStatus);
+        Payment updatedPayment = paymentRepository.save(payment);
+
+        PaymentStatusHistory history = buildHistoryRecord(
+                updatedPayment,
+                currentStatus,
+                targetStatus,
+                buildTransitionNotes(targetStatus)
+        );
+        paymentStatusHistoryRepository.save(history);
+
+        return mapToPaymentResponse(updatedPayment);
     }
 
     /**
@@ -186,5 +207,31 @@ public class PaymentServiceImpl implements PaymentService {
         history.setNewStatus(newStatus);
         history.setNotes(notes);
         return history;
+    }
+
+    // Converts a Payment entity into the DTO exposed to the Controller layer.
+    private PaymentResponse mapToPaymentResponse(Payment payment) {
+        return new PaymentResponse(
+                payment.getId(),
+                payment.getSourceAccount().getId(),
+                payment.getDestinationAccountId(),
+                payment.getAmount(),
+                payment.getCurrency(),
+                payment.getStatus(),
+                payment.getCreatedAt(),
+                payment.getUpdatedAt()
+        );
+    }
+
+    // Converts a PaymentStatusHistory entity into the DTO exposed to the Controller layer.
+    private PaymentHistoryResponse mapToHistoryResponse(PaymentStatusHistory history) {
+        return new PaymentHistoryResponse(
+                history.getId(),
+                history.getPayment().getId(),
+                history.getPreviousStatus(),
+                history.getNewStatus(),
+                history.getChangedAt(),
+                history.getNotes()
+        );
     }
 }
