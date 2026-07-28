@@ -19,6 +19,7 @@ import com.example.paymentprocessing.exception.UserNotFoundException;
 import com.example.paymentprocessing.repository.PaymentRepository;
 import com.example.paymentprocessing.repository.PaymentStatusHistoryRepository;
 import com.example.paymentprocessing.repository.UserRepository;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,10 +29,16 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Implementation of the fixed contract in docs/service-contract.md.
+ * Real, database-backed implementation of the fixed contract in docs/service-contract.md.
  * Uses constructor injection as required by the team rule.
+ * <p>
+ * Disabled under the "mock" Spring profile so it never conflicts with
+ * {@link MockPaymentServiceImpl}, which is used by the controller layer to develop
+ * and test independently of the database. See docs/mock-service-guide.md.
+ * </p>
  */
 @Service
+@Profile("!mock")
 public class PaymentServiceImpl implements PaymentService {
 
     private static final EnumSet<PaymentStatus> TERMINAL_STATUSES = EnumSet.of(

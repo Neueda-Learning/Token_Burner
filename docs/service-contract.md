@@ -1,5 +1,11 @@
 # Payment Service Contract
 
+> **状态：已冻结（FROZEN） — 2026-07-28**
+> 本文档定义的方法签名、DTO 字段、异常类型、状态流转规则均已冻结。
+> 如需修改，必须先在团队内讨论并达成一致，禁止任何人单方面变更。
+> Controller 开发（Leon）现在可以直接对着这份契约和 `MockPaymentServiceImpl`
+> （见 `docs/mock-service-guide.md`）独立开发和测试，无需等待数据库或真实 Service 实现。
+
 ## 1. Service Responsibility
 
 This document defines the fixed contract between the controller layer and the future payment service layer so both developers can work in parallel.
