@@ -19,23 +19,23 @@
 <style scoped>
 .footer {
   margin-top: auto;
-  border-top: 1px solid #4f84b6;
-  background: linear-gradient(180deg, #2c75b0 0%, #1e5e95 100%);
+  border-top: 1px solid rgba(79, 132, 182, 0.22);
+  background: linear-gradient(180deg, rgba(16, 73, 143, 0.96) 0%, rgba(14, 57, 111, 0.98) 100%);
 }
 
 .footer-inner {
   width: min(1100px, 94vw);
   margin: 0 auto;
-  padding: 12px 0 14px;
+  padding: 18px 0 22px;
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 12px;
+  gap: 18px;
   align-items: center;
 }
 
 .footer-brand h3 {
   margin: 0 0 4px;
-  font-size: 15px;
+  font-size: 16px;
   color: #f4f9ff;
 }
 

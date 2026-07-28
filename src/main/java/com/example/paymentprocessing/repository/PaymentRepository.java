@@ -1,8 +1,11 @@
 package com.example.paymentprocessing.repository;
 
 import com.example.paymentprocessing.entity.Payment;
+import com.example.paymentprocessing.enums.PaymentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -10,6 +13,12 @@ import java.util.List;
  * Provides methods for storing and querying payment records.
  */
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
+
+    interface PaymentStatusCountProjection {
+        PaymentStatus getStatus();
+
+        Long getTotal();
+    }
 
     /**
      * Find all payments related to a specific user.
@@ -23,4 +32,12 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
             Long sourceAccountId,
             Long destinationAccountId
     );
+
+    long countByStatus(PaymentStatus status);
+
+    @Query("select sum(p.amount) from Payment p")
+    BigDecimal sumAllAmounts();
+
+    @Query("select p.status as status, count(p) as total from Payment p group by p.status")
+    List<PaymentStatusCountProjection> countPaymentsGroupedByStatus();
 }

@@ -7,6 +7,7 @@ import com.example.paymentprocessing.dto.response.PaymentResponse;
 import com.example.paymentprocessing.enums.PaymentStatus;
 import com.example.paymentprocessing.exception.InsufficientBalanceException;
 import com.example.paymentprocessing.exception.InvalidAccountStatusException;
+import com.example.paymentprocessing.exception.InvalidCurrencyException;
 import com.example.paymentprocessing.exception.InvalidPaymentAmountException;
 import com.example.paymentprocessing.exception.InvalidPaymentPasswordException;
 import com.example.paymentprocessing.exception.InvalidPaymentStatusException;
@@ -21,6 +22,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -53,6 +55,8 @@ public class MockPaymentServiceImpl implements PaymentService {
     // Fixed mock balance cap shared by every known user. Used to trigger InsufficientBalanceException.
     private static final BigDecimal MOCK_BALANCE_LIMIT = new BigDecimal("100000.00");
 
+    private static final Set<String> SUPPORTED_CURRENCIES = Set.of("USD", "EUR", "GBP");
+
     private static final EnumSet<PaymentStatus> TERMINAL_STATUSES = EnumSet.of(
             PaymentStatus.COMPLETED,
             PaymentStatus.FAILED
@@ -80,6 +84,8 @@ public class MockPaymentServiceImpl implements PaymentService {
             throw new InvalidPaymentAmountException();
         }
 
+        String normalizedCurrency = normalizeAndValidateCurrency(request.currency());
+
         if (!Objects.equals(request.paymentPassword(), MOCK_PAYMENT_PASSWORD)) {
             throw new InvalidPaymentPasswordException();
         }
@@ -95,7 +101,7 @@ public class MockPaymentServiceImpl implements PaymentService {
                 request.sourceAccountId(),
                 request.destinationAccountId(),
                 request.amount(),
-                request.currency() == null || request.currency().isBlank() ? "USD" : request.currency(),
+                normalizedCurrency,
                 PaymentStatus.CREATED,
                 now,
                 now
@@ -223,6 +229,19 @@ public class MockPaymentServiceImpl implements PaymentService {
             case COMPLETED -> "Payment completed successfully";
             case FAILED -> "Payment marked as failed";
         };
+    }
+
+    private String normalizeAndValidateCurrency(String currency) {
+        if (currency == null) {
+            throw new InvalidCurrencyException();
+        }
+
+        String normalizedCurrency = currency.trim().toUpperCase();
+        if (!SUPPORTED_CURRENCIES.contains(normalizedCurrency)) {
+            throw new InvalidCurrencyException();
+        }
+
+        return normalizedCurrency;
     }
 
     // Seeds two sample payments aligned with the existing frontend integration data so GET

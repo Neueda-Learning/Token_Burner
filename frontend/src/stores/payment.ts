@@ -96,10 +96,12 @@ export const usePaymentStore = defineStore("payment", {
     async fetchPaymentsByUser(userId: number): Promise<void> {
       this.status = "loading";
       this.errorMessage = "";
+      this.userPayments = [];
       try {
         this.userPayments = await getPaymentsByUser(userId);
         this.status = "success";
       } catch (error) {
+        this.userPayments = [];
         this.status = "error";
         this.errorMessage = toErrorMessage(error);
         throw error;

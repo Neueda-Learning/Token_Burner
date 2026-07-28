@@ -35,39 +35,42 @@ defineProps<{
 <style scoped>
 h2 {
   margin-top: 0;
+  margin-bottom: 4px;
 }
 
 .timeline {
   list-style: none;
-  margin: 8px 0 0;
+  margin: 16px 0 0;
   padding: 0;
   display: grid;
-  gap: 14px;
+  gap: 18px;
 }
 
 .item {
   display: grid;
-  grid-template-columns: 20px 1fr;
-  gap: 10px;
+  grid-template-columns: 24px 1fr;
+  gap: 12px;
   align-items: start;
 }
 
 .dot {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  background: #1768ac;
-  margin-top: 5px;
-  box-shadow: 0 0 0 4px #dbeafe;
+  background: linear-gradient(135deg, #1768ac 0%, #3b82f6 100%);
+  margin-top: 8px;
+  box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.12);
 }
 
 .content {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border: 1px solid #d8e2ef;
-  border-radius: 10px;
-  padding: 10px 12px;
+  border: 1px solid rgba(214, 226, 240, 0.82);
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+  box-shadow: 0 8px 20px rgba(18, 55, 99, 0.05);
 }
 
 .status-block {
@@ -96,6 +99,7 @@ h2 {
   margin: 0;
   color: #374151;
   font-size: 12px;
+  text-align: right;
 }
 
 @media (max-width: 640px) {

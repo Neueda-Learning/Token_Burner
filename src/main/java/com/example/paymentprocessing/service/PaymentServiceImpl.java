@@ -11,6 +11,7 @@ import com.example.paymentprocessing.enums.PaymentStatus;
 import com.example.paymentprocessing.enums.UserStatus;
 import com.example.paymentprocessing.exception.InsufficientBalanceException;
 import com.example.paymentprocessing.exception.InvalidAccountStatusException;
+import com.example.paymentprocessing.exception.InvalidCurrencyException;
 import com.example.paymentprocessing.exception.InvalidPaymentAmountException;
 import com.example.paymentprocessing.exception.InvalidPaymentPasswordException;
 import com.example.paymentprocessing.exception.InvalidPaymentStatusException;
@@ -27,6 +28,7 @@ import java.math.BigDecimal;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Real, database-backed implementation of the fixed contract in docs/service-contract.md.
@@ -45,6 +47,8 @@ public class PaymentServiceImpl implements PaymentService {
             PaymentStatus.COMPLETED,
             PaymentStatus.FAILED
     );
+
+    private static final Set<String> SUPPORTED_CURRENCIES = Set.of("USD", "EUR", "GBP");
 
     private final PaymentRepository paymentRepository;
     private final PaymentStatusHistoryRepository paymentStatusHistoryRepository;
@@ -76,6 +80,8 @@ public class PaymentServiceImpl implements PaymentService {
             throw new InvalidPaymentAmountException();
         }
 
+        String normalizedCurrency = normalizeAndValidateCurrency(request.currency());
+
         // No PasswordEncoder is configured in this training project, so the payment password
         // is compared directly against the stored hash, per docs/service-contract.md section 2.1.
         if (!Objects.equals(request.paymentPassword(), sourceUser.getPaymentPasswordHash())) {
@@ -90,7 +96,7 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setSourceAccount(sourceUser);
         payment.setDestinationAccountId(request.destinationAccountId());
         payment.setAmount(request.amount());
-        payment.setCurrency(request.currency());
+        payment.setCurrency(normalizedCurrency);
         Payment savedPayment = paymentRepository.save(payment);
 
         PaymentStatusHistory history = buildHistoryRecord(
@@ -240,5 +246,18 @@ public class PaymentServiceImpl implements PaymentService {
                 history.getChangedAt(),
                 history.getNotes()
         );
+    }
+
+    private String normalizeAndValidateCurrency(String currency) {
+        if (currency == null) {
+            throw new InvalidCurrencyException();
+        }
+
+        String normalizedCurrency = currency.trim().toUpperCase();
+        if (!SUPPORTED_CURRENCIES.contains(normalizedCurrency)) {
+            throw new InvalidCurrencyException();
+        }
+
+        return normalizedCurrency;
     }
 }
