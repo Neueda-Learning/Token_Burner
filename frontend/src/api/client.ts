@@ -43,8 +43,8 @@ function toRequestUrl(config: InternalAxiosRequestConfig): string {
 }
 
 export const apiClient = axios.create({
-  // baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080",
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? "",
+  baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080",
+  // baseURL: import.meta.env.VITE_API_BASE_URL ?? "",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json"
@@ -52,7 +52,7 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  console.debug("[api:request]", {
+  console.log("[api] sending request", {
     method: config.method?.toUpperCase() ?? "GET",
     url: toRequestUrl(config),
     payload: maskSensitiveData(config.data)
@@ -63,7 +63,7 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(
   (response) => {
-    console.debug("[api:response]", {
+    console.log("[api] received response", {
       method: response.config.method?.toUpperCase() ?? "GET",
       url: toRequestUrl(response.config),
       status: response.status,
