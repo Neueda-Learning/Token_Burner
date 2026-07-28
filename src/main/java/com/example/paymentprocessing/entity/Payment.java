@@ -38,8 +38,8 @@ public class Payment {
     @JoinColumn(name = "source_account_id", nullable = false)
     private User sourceAccount;
 
-    @Column(name = "destination_account_number", nullable = false, length = 64)
-    private String destinationAccountNumber;
+    @Column(name = "destination_account_id", nullable = false)
+    private Long destinationAccountId;
 
     @Column(nullable = false, precision = 18, scale = 2)
     private BigDecimal amount;
