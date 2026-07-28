@@ -15,6 +15,7 @@ export interface Payment {
 
 export interface PaymentHistoryResponse {
   historyId: number;
+  paymentId?: number;
   previousStatus: PaymentStatus | null;
   newStatus: PaymentStatus;
   changedAt: string;
@@ -42,8 +43,23 @@ export interface CreatePaymentRequest {
 }
 
 export interface UserPaymentsResponse {
-  userId: number;
+  userId?: number;
   payments: Payment[];
+}
+
+function isPayment(value: unknown): value is Payment {
+  return Boolean(
+    value &&
+    typeof value === "object" &&
+    "paymentId" in value &&
+    "sourceAccountId" in value &&
+    "destinationAccountId" in value &&
+    "amount" in value &&
+    "currency" in value &&
+    "status" in value &&
+    "createdAt" in value &&
+    "updatedAt" in value
+  );
 }
 
 export async function createPayment(payload: CreatePaymentRequest): Promise<Payment> {
@@ -57,11 +73,33 @@ export async function getPaymentById(paymentId: number): Promise<Payment> {
 }
 
 export async function getPaymentHistory(paymentId: number): Promise<PaymentHistoryListResponse> {
-  const { data } = await apiClient.get<PaymentHistoryListResponse>(`/api/payments/${paymentId}/history`);
-  return data;
+  const { data } = await apiClient.get<PaymentHistoryListResponse | PaymentHistoryResponse[]>(
+    `/api/payments/${paymentId}/history`
+  );
+
+  if (Array.isArray(data)) {
+    return {
+      paymentId,
+      history: data
+    };
+  }
+
+  return {
+    paymentId: data.paymentId ?? paymentId,
+    history: data.history ?? []
+  };
 }
 
-export async function getPaymentsByUser(userId: number): Promise<UserPaymentsResponse | Payment[]> {
-  const { data } = await apiClient.get<UserPaymentsResponse | Payment[]>(`/api/payments/user/${userId}`);
-  return data;
+export async function getPaymentsByUser(userId: number): Promise<Payment[]> {
+  const { data } = await apiClient.get<UserPaymentsResponse | Payment[] | Payment>(`/api/payments/user/${userId}`);
+
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (isPayment(data)) {
+    return [data];
+  }
+
+  return data.payments ?? [];
 }

@@ -2,8 +2,7 @@ import { defineStore } from "pinia";
 import type {
   CreatePaymentRequest,
   Payment,
-  PaymentHistoryResponse,
-  UserPaymentsResponse
+  PaymentHistoryResponse
 } from "../api/payments";
 import {
   createPayment,
@@ -98,12 +97,7 @@ export const usePaymentStore = defineStore("payment", {
       this.status = "loading";
       this.errorMessage = "";
       try {
-        const data = await getPaymentsByUser(userId);
-        if (Array.isArray(data)) {
-          this.userPayments = data;
-        } else {
-          this.userPayments = (data as UserPaymentsResponse).payments ?? [];
-        }
+        this.userPayments = await getPaymentsByUser(userId);
         this.status = "success";
       } catch (error) {
         this.status = "error";
