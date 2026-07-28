@@ -1,12 +1,20 @@
 package com.example.paymentprocessing.exception;
 
 /**
- * TODO Leon:
- * Define the exception type used when a user cannot be found.
- * Add inheritance, constructors, and message handling later.
- * This class is a placeholder to stabilize team package structure before parallel development.
+ * Business exception thrown when a user cannot be found.
  */
-public class UserNotFoundException {
-    // TODO Define user not found exception details.
+public class UserNotFoundException extends RuntimeException {
+
+    public UserNotFoundException(Long userId) {
+        super("User with id %d was not found.".formatted(userId));
+    }
+
+    public UserNotFoundException(String message) {
+        super(message);
+    }
+
+    public UserNotFoundException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
 
