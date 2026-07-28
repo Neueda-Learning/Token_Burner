@@ -40,9 +40,9 @@ import java.util.concurrent.atomic.AtomicLong;
 public class MockPaymentServiceImpl implements PaymentService {
 
     // Fixed mock user IDs treated as known/valid. Any other ID triggers UserNotFoundException.
-    private static final long KNOWN_USER_1 = 1L;
-    private static final long KNOWN_USER_2 = 2L;
-    private static final long KNOWN_USER_3 = 3L;
+    private static final long KNOWN_USER_1 = 1001L;
+    private static final long KNOWN_USER_2 = 1002L;
+    private static final long KNOWN_USER_3 = 1003L;
 
     // Reserved mock user ID treated as an inactive account. Used to trigger InvalidAccountStatusException.
     private static final long INACTIVE_USER = 99L;
@@ -60,7 +60,7 @@ public class MockPaymentServiceImpl implements PaymentService {
 
     private final Map<Long, PaymentResponse> payments = new ConcurrentHashMap<>();
     private final Map<Long, List<PaymentHistoryResponse>> historyByPaymentId = new ConcurrentHashMap<>();
-    private final AtomicLong paymentIdSequence = new AtomicLong(1000);
+    private final AtomicLong paymentIdSequence = new AtomicLong(102);
     private final AtomicLong historyIdSequence = new AtomicLong(1);
 
     public MockPaymentServiceImpl() {
@@ -225,36 +225,40 @@ public class MockPaymentServiceImpl implements PaymentService {
         };
     }
 
-    // Seeds two sample payments so GET endpoints return data immediately without any
-    // createPayment call first.
+    // Seeds two sample payments aligned with the existing frontend integration data so GET
+    // endpoints return compatible results immediately without any createPayment call first.
     private void seedMockData() {
-        Long firstPaymentId = paymentIdSequence.incrementAndGet();
+        Long firstPaymentId = 101L;
         LocalDateTime firstCreatedAt = LocalDateTime.now().minusHours(2);
         payments.put(firstPaymentId, new PaymentResponse(
                 firstPaymentId,
                 KNOWN_USER_1,
                 KNOWN_USER_2,
-                new BigDecimal("100.00"),
+                new BigDecimal("1500.00"),
                 "USD",
-                PaymentStatus.CREATED,
+                PaymentStatus.COMPLETED,
                 firstCreatedAt,
-                firstCreatedAt
+                firstCreatedAt.plusMinutes(10)
         ));
         appendHistory(firstPaymentId, null, PaymentStatus.CREATED, buildTransitionNotes(PaymentStatus.CREATED));
+        appendHistory(firstPaymentId, PaymentStatus.CREATED, PaymentStatus.VALIDATED, buildTransitionNotes(PaymentStatus.VALIDATED));
+        appendHistory(firstPaymentId, PaymentStatus.VALIDATED, PaymentStatus.SENT, buildTransitionNotes(PaymentStatus.SENT));
+        appendHistory(firstPaymentId, PaymentStatus.SENT, PaymentStatus.COMPLETED, buildTransitionNotes(PaymentStatus.COMPLETED));
 
-        Long secondPaymentId = paymentIdSequence.incrementAndGet();
+        Long secondPaymentId = 102L;
         LocalDateTime secondCreatedAt = LocalDateTime.now().minusHours(1);
         payments.put(secondPaymentId, new PaymentResponse(
                 secondPaymentId,
-                KNOWN_USER_2,
                 KNOWN_USER_3,
-                new BigDecimal("250.50"),
+                KNOWN_USER_1,
+                new BigDecimal("275.50"),
                 "USD",
-                PaymentStatus.VALIDATED,
+                PaymentStatus.SENT,
                 secondCreatedAt,
-                secondCreatedAt
+                secondCreatedAt.plusMinutes(7)
         ));
         appendHistory(secondPaymentId, null, PaymentStatus.CREATED, buildTransitionNotes(PaymentStatus.CREATED));
         appendHistory(secondPaymentId, PaymentStatus.CREATED, PaymentStatus.VALIDATED, buildTransitionNotes(PaymentStatus.VALIDATED));
+        appendHistory(secondPaymentId, PaymentStatus.VALIDATED, PaymentStatus.SENT, buildTransitionNotes(PaymentStatus.SENT));
     }
 }
