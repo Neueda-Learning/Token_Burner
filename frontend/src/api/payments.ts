@@ -15,6 +15,7 @@ export interface Payment {
 
 export interface PaymentHistoryResponse {
   historyId: number;
+  paymentId?: number;
   previousStatus: PaymentStatus | null;
   newStatus: PaymentStatus;
   changedAt: string;
@@ -57,8 +58,21 @@ export async function getPaymentById(paymentId: number): Promise<Payment> {
 }
 
 export async function getPaymentHistory(paymentId: number): Promise<PaymentHistoryListResponse> {
-  const { data } = await apiClient.get<PaymentHistoryListResponse>(`/api/payments/${paymentId}/history`);
-  return data;
+  const { data } = await apiClient.get<PaymentHistoryListResponse | PaymentHistoryResponse[]>(
+    `/api/payments/${paymentId}/history`
+  );
+
+  if (Array.isArray(data)) {
+    return {
+      paymentId,
+      history: data
+    };
+  }
+
+  return {
+    paymentId: data.paymentId ?? paymentId,
+    history: data.history ?? []
+  };
 }
 
 export async function getPaymentsByUser(userId: number): Promise<UserPaymentsResponse | Payment[]> {
