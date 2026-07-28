@@ -22,7 +22,7 @@ create table if not exists `payments`
 (
     `id`                     bigint auto_increment comment '支付ID' primary key,
     `source_account_id`      bigint                                not null comment '付款用户ID',
-    `destination_account_number` varchar(64)                       not null comment '收款账户号',
+    `destination_account_id`     bigint                            not null comment '收款账户ID',
     `amount`                 decimal(18,2)                         not null comment '支付金额',
     `currency`               varchar(16)                           not null default 'USD' comment '币种',
     `status`                 varchar(32)                           not null default 'CREATED' comment '状态(CREATED/VALIDATED/SENT/COMPLETED/FAILED)',
@@ -30,7 +30,7 @@ create table if not exists `payments`
     `updated_at`             datetime                              not null default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP comment '更新时间',
 
     index `idx_source_account_id` (`source_account_id`),
-    index `idx_destination_account_number` (`destination_account_number`),
+    index `idx_destination_account_id` (`destination_account_id`),
     index `idx_status` (`status`),
     index `idx_created_at` (`created_at`),
     constraint `chk_payment_amount` check (`amount` > 0),
@@ -57,44 +57,7 @@ create table if not exists `payment_status_history`
         foreign key (`payment_id`) references `payments` (`id`) on delete cascade
     ) engine = InnoDB default charset = utf8mb4 collate = utf8mb4_unicode_ci comment '支付状态历史';
 
-
-
--- 示例数据（对应文档示例记录）
-insert into `users` (`id`, `account_number`, `balance`, `status`, `payment_password_hash`, `created_at`, `updated_at`)
-values
-    (1001, 'ACC-10001', 5000.00, 'ACTIVE', 'hashed_pwd_value_1', '2026-07-27 10:00:00', '2026-07-27 10:00:00'),
-    (1002, 'ACC-20001', 3200.00, 'ACTIVE', 'hashed_pwd_value_2', '2026-07-27 10:00:00', '2026-07-27 10:00:00')
-on duplicate key update
-    `account_number` = values(`account_number`),
-    `balance` = values(`balance`),
-    `status` = values(`status`),
-    `payment_password_hash` = values(`payment_password_hash`),
-    `created_at` = values(`created_at`),
-    `updated_at` = values(`updated_at`);
-
-insert into `payments` (`id`, `source_account_id`, `destination_account_number`, `amount`, `currency`, `status`, `created_at`, `updated_at`)
-values
-    (101, 1001, 'ACC-20001', 1500.00, 'USD', 'SENT', '2026-07-27 10:30:00', '2026-07-27 10:35:00')
-on duplicate key update
-    `source_account_id` = values(`source_account_id`),
-    `destination_account_number` = values(`destination_account_number`),
-    `amount` = values(`amount`),
-    `currency` = values(`currency`),
-    `status` = values(`status`),
-    `created_at` = values(`created_at`),
-    `updated_at` = values(`updated_at`);
-
-insert into `payment_status_history` (`id`, `payment_id`, `previous_status`, `new_status`, `changed_at`, `notes`)
-values
-    (1001, 101, null, 'CREATED', '2026-07-27 10:30:00', 'Payment created successfully'),
-    (1002, 101, 'CREATED', 'VALIDATED', '2026-07-27 10:32:00', 'Payment request validated'),
-    (1003, 101, 'VALIDATED', 'SENT', '2026-07-27 10:35:00', 'Payment sent for processing')
-on duplicate key update
-    `payment_id` = values(`payment_id`),
-    `previous_status` = values(`previous_status`),
-    `new_status` = values(`new_status`),
-    `changed_at` = values(`changed_at`),
-    `notes` = values(`notes`);
-
-
+-- =========================
+-- Seed data (10 rows/table)
+-- =========================
 

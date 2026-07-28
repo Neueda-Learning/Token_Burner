@@ -1,89 +1,76 @@
 package com.example.paymentprocessing.entity;
-
+/**
+ * TODO Kylian:
+ */
+import com.example.paymentprocessing.enums.UserStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
-/**
- * JPA entity representing the {@code users} table.
- * <p>
- * This model stores account-related user data, including only the hashed
- * payment password. Plain text payment passwords must never be persisted.
- * Password verification and hashing behavior belong to later service and
- * security work, not to this entity.
- * </p>
- */
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "users")
 public class User {
 
     @Id
-    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "account_number", nullable = false, length = 50)
+    @Column(name = "account_number", nullable = false, length = 64, unique = true)
     private String accountNumber;
 
-    @Column(name = "balance", nullable = false, precision = 19, scale = 2)
+    @Column(nullable = false, precision = 18, scale = 2)
     private BigDecimal balance;
 
-    @Column(name = "status", nullable = false, length = 50)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 32)
+    private UserStatus status;
 
-    @Column(name = "payment_password_hash", nullable = false)
+    @JsonIgnore
+    @Column(name = "payment_password_hash", nullable = false, length = 255)
     private String paymentPasswordHash;
 
-    public User() {
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        if (createdAt == null) {
+            createdAt = now;
+        }
+        if (updatedAt == null) {
+            updatedAt = now;
+        }
+        if (balance == null) {
+            balance = BigDecimal.ZERO;
+        }
+        if (status == null) {
+            status = UserStatus.ACTIVE;
+        }
     }
 
-    public User(Long id, String accountNumber, BigDecimal balance, String status, String paymentPasswordHash) {
-        this.id = id;
-        this.accountNumber = accountNumber;
-        this.balance = balance;
-        this.status = status;
-        this.paymentPasswordHash = paymentPasswordHash;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getAccountNumber() {
-        return accountNumber;
-    }
-
-    public void setAccountNumber(String accountNumber) {
-        this.accountNumber = accountNumber;
-    }
-
-    public BigDecimal getBalance() {
-        return balance;
-    }
-
-    public void setBalance(BigDecimal balance) {
-        this.balance = balance;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getPaymentPasswordHash() {
-        return paymentPasswordHash;
-    }
-
-    public void setPaymentPasswordHash(String paymentPasswordHash) {
-        this.paymentPasswordHash = paymentPasswordHash;
+    @PreUpdate
+    void preUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }
