@@ -1,12 +1,20 @@
 package com.example.paymentprocessing.exception;
 
 /**
- * TODO Leon:
- * Define the exception type used when a payment amount is invalid.
- * Add inheritance, constructors, and message handling later.
- * This class is a placeholder to stabilize team package structure before parallel development.
+ * Business exception thrown when a payment amount is invalid.
  */
-public class InvalidPaymentAmountException {
-    // TODO Define invalid payment amount exception details.
+public class InvalidPaymentAmountException extends RuntimeException {
+
+    public InvalidPaymentAmountException() {
+        super("Payment amount is invalid.");
+    }
+
+    public InvalidPaymentAmountException(String message) {
+        super(message);
+    }
+
+    public InvalidPaymentAmountException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
 
