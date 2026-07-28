@@ -8,8 +8,11 @@ import com.example.paymentprocessing.dto.response.PaymentResponse;
 import java.util.List;
 
 /**
- * Fixed service contract defined in docs/service-contract.md.
- * Method names, parameters, and return types must not change without team discussion.
+ * FROZEN service contract defined in docs/service-contract.md (frozen 2026-07-28).
+ * Method names, parameters, return types, and thrown exception types must not change
+ * without team discussion. A mock implementation (MockPaymentServiceImpl, active under
+ * the "mock" Spring profile) is available so the controller layer can be developed and
+ * tested independently of the database and the real service implementation.
  */
 public interface PaymentService {
 
