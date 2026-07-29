@@ -76,7 +76,7 @@ const failedPayments = computed(() => store.userPayments.filter((payment) => pay
 
 async function loadUserPayments(currentUserId: number): Promise<void> {
   if (!Number.isInteger(currentUserId) || currentUserId <= 0) {
-    store.userPayments = [];
+    store.clearUserPayments();
     store.status = "error";
     store.errorMessage = "Invalid user ID.";
     return;
@@ -96,17 +96,36 @@ async function handleSearch(): Promise<void> {
     return;
   }
 
-  await router.push(`/users/${searchUserId.value}/payments`);
+  const targetUserId = searchUserId.value;
+
+  store.clearError();
+  store.clearUserPayments();
+
+  try {
+    await store.fetchPaymentsByUser(targetUserId);
+    await router.push(`/users/${targetUserId}/payments`);
+  } catch {
+    // Error state stays on the current page and stale user payments remain cleared.
+  }
 }
 
 watch(
   () => [route.name, route.params.userId] as const,
   async ([routeName, routeUserId]) => {
     if (routeName !== "user-payments") {
+      store.clearUserPayments();
       return;
     }
 
-    await loadUserPayments(Number(routeUserId));
+    const parsedUserId = Number(routeUserId);
+
+    if (store.loadedUserPaymentsUserId === parsedUserId) {
+      return;
+    }
+
+    store.clearError();
+    store.clearUserPayments();
+    await loadUserPayments(parsedUserId);
   },
   { immediate: true }
 );

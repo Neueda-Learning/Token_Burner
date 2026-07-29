@@ -18,8 +18,12 @@
           />
         </div>
 
-        <button class="btn btn-primary search-btn" type="submit">Search</button>
+        <button class="btn btn-primary search-btn" type="submit" :disabled="isLoading">
+          {{ isLoading ? "Searching..." : "Search" }}
+        </button>
       </form>
+
+      <p v-if="store.errorMessage" class="error-text">{{ store.errorMessage }}</p>
 
       <p class="supporting-copy muted">From creation to completion, every status change is recorded for transparency.</p>
     </div>
@@ -27,18 +31,35 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import { usePaymentStore } from "../stores/payment";
 
 const router = useRouter();
+const store = usePaymentStore();
 const paymentId = ref<number | null>(null);
+const isLoading = computed(() => store.status === "loading");
+
+onMounted(() => {
+  store.clearError();
+});
 
 async function goPaymentHistory(): Promise<void> {
   if (!paymentId.value || paymentId.value <= 0) {
     return;
   }
 
-  await router.push(`/payments/${paymentId.value}/history`);
+  const targetPaymentId = paymentId.value;
+
+  store.clearError();
+  store.clearPaymentHistory();
+
+  try {
+    await store.fetchPaymentHistory(targetPaymentId);
+    await router.push(`/payments/${targetPaymentId}/history`);
+  } catch {
+    // Error state stays on the search page; do not navigate using stale data.
+  }
 }
 </script>
 

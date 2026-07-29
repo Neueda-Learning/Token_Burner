@@ -6,7 +6,6 @@ import com.example.paymentprocessing.dto.response.PaymentHistoryResponse;
 import com.example.paymentprocessing.dto.response.PaymentResponse;
 import com.example.paymentprocessing.enums.PaymentStatus;
 import com.example.paymentprocessing.exception.InsufficientBalanceException;
-import com.example.paymentprocessing.exception.InvalidAccountStatusException;
 import com.example.paymentprocessing.exception.InvalidCurrencyException;
 import com.example.paymentprocessing.exception.InvalidPaymentAmountException;
 import com.example.paymentprocessing.exception.InvalidPaymentPasswordException;
@@ -40,6 +39,14 @@ import java.util.concurrent.atomic.AtomicLong;
 @Service
 @Profile("mock")
 public class MockPaymentServiceImpl implements PaymentService {
+
+    private static final BigDecimal SINGLE_PAYMENT_LIMIT = new BigDecimal("1000000.00");
+
+    private static final String INACTIVE_ACCOUNT_FAILURE_NOTE =
+            "Payment failed: source or destination account is inactive";
+
+    private static final String SINGLE_PAYMENT_LIMIT_FAILURE_NOTE =
+            "Payment failed: transaction amount exceeds the single-payment limit";
 
     // Fixed mock user IDs treated as known/valid. Any other ID triggers UserNotFoundException.
     private static final long KNOWN_USER_1 = 1001L;
@@ -76,10 +83,6 @@ public class MockPaymentServiceImpl implements PaymentService {
         assertKnownUser(request.sourceAccountId());
         assertKnownUser(request.destinationAccountId());
 
-        if (request.sourceAccountId() == INACTIVE_USER || request.destinationAccountId() == INACTIVE_USER) {
-            throw new InvalidAccountStatusException();
-        }
-
         if (request.amount() == null || request.amount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidPaymentAmountException();
         }
@@ -90,7 +93,10 @@ public class MockPaymentServiceImpl implements PaymentService {
             throw new InvalidPaymentPasswordException();
         }
 
-        if (request.amount().compareTo(MOCK_BALANCE_LIMIT) > 0) {
+        boolean accountsActive = request.sourceAccountId() != INACTIVE_USER && request.destinationAccountId() != INACTIVE_USER;
+        boolean withinSinglePaymentLimit = request.amount().compareTo(SINGLE_PAYMENT_LIMIT) <= 0;
+
+        if (accountsActive && withinSinglePaymentLimit && request.amount().compareTo(MOCK_BALANCE_LIMIT) > 0) {
             throw new InsufficientBalanceException();
         }
 
@@ -109,6 +115,14 @@ public class MockPaymentServiceImpl implements PaymentService {
 
         payments.put(paymentId, payment);
         appendHistory(paymentId, null, PaymentStatus.CREATED, buildTransitionNotes(PaymentStatus.CREATED));
+
+        if (!accountsActive) {
+            return persistTransition(payment, PaymentStatus.FAILED, INACTIVE_ACCOUNT_FAILURE_NOTE);
+        }
+
+        if (!withinSinglePaymentLimit) {
+            return persistTransition(payment, PaymentStatus.FAILED, SINGLE_PAYMENT_LIMIT_FAILURE_NOTE);
+        }
 
         return payment;
     }
@@ -145,21 +159,7 @@ public class MockPaymentServiceImpl implements PaymentService {
             throw new InvalidPaymentStatusException(buildInvalidTransitionMessage(currentStatus, targetStatus));
         }
 
-        PaymentResponse updatedPayment = new PaymentResponse(
-                payment.paymentId(),
-                payment.sourceAccountId(),
-                payment.destinationAccountId(),
-                payment.amount(),
-                payment.currency(),
-                targetStatus,
-                payment.createdAt(),
-                LocalDateTime.now()
-        );
-
-        payments.put(paymentId, updatedPayment);
-        appendHistory(paymentId, currentStatus, targetStatus, buildTransitionNotes(targetStatus));
-
-        return updatedPayment;
+        return persistTransition(payment, targetStatus, buildTransitionNotes(targetStatus));
     }
 
     private void assertKnownUser(Long userId) {
@@ -196,6 +196,24 @@ public class MockPaymentServiceImpl implements PaymentService {
                     return List.copyOf(merged);
                 }
         );
+    }
+
+    private PaymentResponse persistTransition(PaymentResponse payment, PaymentStatus targetStatus, String notes) {
+        PaymentResponse updatedPayment = new PaymentResponse(
+                payment.paymentId(),
+                payment.sourceAccountId(),
+                payment.destinationAccountId(),
+                payment.amount(),
+                payment.currency(),
+                targetStatus,
+                payment.createdAt(),
+                LocalDateTime.now()
+        );
+
+        payments.put(payment.paymentId(), updatedPayment);
+        appendHistory(payment.paymentId(), payment.status(), targetStatus, notes);
+
+        return updatedPayment;
     }
 
     // Mirrors the frozen transition rules in PaymentServiceImpl.isTransitionAllowed

@@ -30,9 +30,9 @@
           <strong>#{{ paymentId }}</strong>
         </div>
 
-        <div class="summary-item">
+        <div class="summary-item summary-status-item">
           <span class="summary-label">Current Status</span>
-          <StatusBadge :status="currentStatus" />
+          <StatusBadge :status="currentStatus" size="lg" />
         </div>
       </div>
 
@@ -70,12 +70,20 @@ async function handleSearch(): Promise<void> {
     return;
   }
 
-  await router.push(`/payments/${value}/history`);
+  store.clearError();
+  store.clearPaymentHistory();
+
+  try {
+    await store.fetchPaymentHistory(value);
+    await router.push(`/payments/${value}/history`);
+  } catch {
+    // Error state stays on the current page and stale history remains cleared.
+  }
 }
 
 async function loadHistory(currentPaymentId: number): Promise<void> {
   if (!Number.isInteger(currentPaymentId) || currentPaymentId <= 0) {
-    store.paymentHistory = [];
+    store.clearPaymentHistory();
     store.status = "error";
     store.errorMessage = "Invalid payment ID.";
     return;
@@ -92,11 +100,19 @@ watch(
   () => [route.name, route.params.paymentId] as const,
   async ([routeName, routePaymentId]) => {
     if (routeName !== "payment-history") {
+      store.clearPaymentHistory();
       return;
     }
 
     const parsedPaymentId = Number(routePaymentId);
     searchPaymentId.value = Number.isInteger(parsedPaymentId) && parsedPaymentId > 0 ? parsedPaymentId : null;
+
+    if (store.loadedPaymentHistoryId === parsedPaymentId) {
+      return;
+    }
+
+    store.clearError();
+    store.clearPaymentHistory();
     await loadHistory(parsedPaymentId);
   },
   { immediate: true }
@@ -150,6 +166,16 @@ watch(
   gap: 10px;
   padding-bottom: 14px;
   border-bottom: 1px solid rgba(214, 226, 240, 0.68);
+}
+
+.summary-status-item {
+  align-content: start;
+  justify-items: start;
+}
+
+.summary-item strong {
+  color: var(--text);
+  font-size: 1.25rem;
 }
 
 .summary-label {

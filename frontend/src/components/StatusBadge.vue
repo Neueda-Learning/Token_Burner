@@ -1,5 +1,5 @@
 <template>
-  <span class="badge" :class="className">{{ label }}</span>
+  <span class="badge" :class="[className, sizeClass]">{{ label }}</span>
 </template>
 
 <script setup lang="ts">
@@ -9,6 +9,7 @@ import { statusLabelMap } from "../utils/status";
 
 const props = defineProps<{
   status: PaymentStatus;
+  size?: "sm" | "md" | "lg";
 }>();
 
 const label = computed(() => statusLabelMap[props.status] ?? props.status);
@@ -29,19 +30,47 @@ const className = computed(() => {
       return "";
   }
 });
+
+const sizeClass = computed(() => {
+  switch (props.size ?? "sm") {
+    case "lg":
+      return "badge-lg";
+    case "md":
+      return "badge-md";
+    default:
+      return "badge-sm";
+  }
+});
 </script>
 
 <style scoped>
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
   width: fit-content;
   max-width: 100%;
   white-space: nowrap;
   border-radius: 999px;
-  font-size: 12px;
   font-weight: 700;
+}
+
+.badge-sm {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.badge-md {
+  padding: 8px 14px;
+  font-size: 0.85rem;
+}
+
+.badge-lg {
+  padding: 14px 24px;
+  min-width: 170px;
+  justify-content: center;
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
 }
 
 .created {

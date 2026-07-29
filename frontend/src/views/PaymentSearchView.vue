@@ -18,8 +18,12 @@
           />
         </div>
 
-        <button class="btn btn-primary search-btn" type="submit">Search</button>
+        <button class="btn btn-primary search-btn" type="submit" :disabled="isLoading">
+          {{ isLoading ? "Searching..." : "Search" }}
+        </button>
       </form>
+
+      <p v-if="store.errorMessage" class="error-text">{{ store.errorMessage }}</p>
 
       <p class="supporting-copy muted">Every transaction has a story. Track your payment journey with confidence.</p>
     </div>
@@ -27,18 +31,35 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import { usePaymentStore } from "../stores/payment";
 
 const router = useRouter();
+const store = usePaymentStore();
 const paymentId = ref<number | null>(null);
+const isLoading = computed(() => store.status === "loading");
+
+onMounted(() => {
+  store.clearError();
+});
 
 async function goPaymentDetail(): Promise<void> {
   if (!paymentId.value || paymentId.value <= 0) {
     return;
   }
 
-  await router.push(`/payments/${paymentId.value}`);
+  const targetPaymentId = paymentId.value;
+
+  store.clearError();
+  store.clearPayment();
+
+  try {
+    await store.fetchPayment(targetPaymentId);
+    await router.push(`/payments/${targetPaymentId}`);
+  } catch {
+    // Error state stays on the search page; do not navigate using stale data.
+  }
 }
 </script>
 

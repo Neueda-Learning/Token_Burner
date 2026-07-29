@@ -2,7 +2,7 @@
   <article class="card payment-card">
     <div class="card-head">
       <h3>Payment #{{ payment.paymentId }}</h3>
-      <StatusBadge :status="payment.status" />
+      <StatusBadge :status="payment.status" size="md" />
     </div>
 
     <div class="grid">
@@ -76,6 +76,7 @@ const showActions = computed(() => props.showActions ?? true);
 .card-head h3 {
   margin: 0;
   font-size: 1.15rem;
+  min-width: 0;
 }
 
 .grid {
@@ -129,5 +130,12 @@ const showActions = computed(() => props.showActions ?? true);
 
 .actions .btn {
   text-decoration: none;
+}
+
+@media (max-width: 640px) {
+  .card-head {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
 }
 </style>

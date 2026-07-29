@@ -10,7 +10,6 @@ import com.example.paymentprocessing.entity.User;
 import com.example.paymentprocessing.enums.PaymentStatus;
 import com.example.paymentprocessing.enums.UserStatus;
 import com.example.paymentprocessing.exception.InsufficientBalanceException;
-import com.example.paymentprocessing.exception.InvalidAccountStatusException;
 import com.example.paymentprocessing.exception.InvalidCurrencyException;
 import com.example.paymentprocessing.exception.InvalidPaymentAmountException;
 import com.example.paymentprocessing.exception.InvalidPaymentPasswordException;
@@ -43,6 +42,14 @@ import java.util.Set;
 @Profile("!mock")
 public class PaymentServiceImpl implements PaymentService {
 
+    private static final BigDecimal SINGLE_PAYMENT_LIMIT = new BigDecimal("1000000.00");
+
+    private static final String INACTIVE_ACCOUNT_FAILURE_NOTE =
+            "Payment failed: source or destination account is inactive";
+
+    private static final String SINGLE_PAYMENT_LIMIT_FAILURE_NOTE =
+            "Payment failed: transaction amount exceeds the single-payment limit";
+
     private static final EnumSet<PaymentStatus> TERMINAL_STATUSES = EnumSet.of(
             PaymentStatus.COMPLETED,
             PaymentStatus.FAILED
@@ -72,10 +79,6 @@ public class PaymentServiceImpl implements PaymentService {
         User destinationUser = userRepository.findById(request.destinationAccountId())
                 .orElseThrow(() -> new UserNotFoundException(request.destinationAccountId()));
 
-        if (sourceUser.getStatus() != UserStatus.ACTIVE || destinationUser.getStatus() != UserStatus.ACTIVE) {
-            throw new InvalidAccountStatusException();
-        }
-
         if (request.amount() == null || request.amount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidPaymentAmountException();
         }
@@ -88,7 +91,11 @@ public class PaymentServiceImpl implements PaymentService {
             throw new InvalidPaymentPasswordException();
         }
 
-        if (sourceUser.getBalance().compareTo(request.amount()) < 0) {
+        boolean accountsActive = sourceUser.getStatus() == UserStatus.ACTIVE
+                && destinationUser.getStatus() == UserStatus.ACTIVE;
+        boolean withinSinglePaymentLimit = request.amount().compareTo(SINGLE_PAYMENT_LIMIT) <= 0;
+
+        if (accountsActive && withinSinglePaymentLimit && sourceUser.getBalance().compareTo(request.amount()) < 0) {
             throw new InsufficientBalanceException();
         }
 
@@ -106,6 +113,22 @@ public class PaymentServiceImpl implements PaymentService {
                 buildTransitionNotes(savedPayment.getStatus())
         );
         paymentStatusHistoryRepository.save(history);
+
+        if (!accountsActive) {
+            return mapToPaymentResponse(transitionPaymentStatus(
+                    savedPayment,
+                    PaymentStatus.FAILED,
+                    INACTIVE_ACCOUNT_FAILURE_NOTE
+            ));
+        }
+
+        if (!withinSinglePaymentLimit) {
+            return mapToPaymentResponse(transitionPaymentStatus(
+                    savedPayment,
+                    PaymentStatus.FAILED,
+                    SINGLE_PAYMENT_LIMIT_FAILURE_NOTE
+            ));
+        }
 
         return mapToPaymentResponse(savedPayment);
     }
@@ -155,18 +178,11 @@ public class PaymentServiceImpl implements PaymentService {
             throw new InvalidPaymentStatusException(buildInvalidTransitionMessage(currentStatus, targetStatus));
         }
 
-        payment.setStatus(targetStatus);
-        Payment updatedPayment = paymentRepository.save(payment);
-
-        PaymentStatusHistory history = buildHistoryRecord(
-                updatedPayment,
-                currentStatus,
+        return mapToPaymentResponse(transitionPaymentStatus(
+                payment,
                 targetStatus,
                 buildTransitionNotes(targetStatus)
-        );
-        paymentStatusHistoryRepository.save(history);
-
-        return mapToPaymentResponse(updatedPayment);
+        ));
     }
 
     /**
@@ -220,6 +236,22 @@ public class PaymentServiceImpl implements PaymentService {
         history.setNewStatus(newStatus);
         history.setNotes(notes);
         return history;
+    }
+
+    private Payment transitionPaymentStatus(Payment payment, PaymentStatus targetStatus, String notes) {
+        PaymentStatus currentStatus = payment.getStatus();
+        payment.setStatus(targetStatus);
+        Payment updatedPayment = paymentRepository.save(payment);
+
+        PaymentStatusHistory history = buildHistoryRecord(
+                updatedPayment,
+                currentStatus,
+                targetStatus,
+                notes
+        );
+        paymentStatusHistoryRepository.save(history);
+
+        return updatedPayment;
     }
 
     // Converts a Payment entity into the DTO exposed to the Controller layer.

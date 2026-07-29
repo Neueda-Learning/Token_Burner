@@ -42,6 +42,10 @@ export interface CreatePaymentRequest {
   paymentPassword: string;
 }
 
+export interface UpdatePaymentStatusRequest {
+  status: PaymentStatus;
+}
+
 export interface UserPaymentsResponse {
   userId?: number;
   payments: Payment[];
@@ -103,3 +107,12 @@ export async function getPaymentsByUser(userId: number): Promise<Payment[]> {
 
   return data.payments ?? [];
 }
+
+export async function updatePaymentStatus(
+  paymentId: number,
+  payload: UpdatePaymentStatusRequest
+): Promise<Payment> {
+  const { data } = await apiClient.put<Payment>(`/api/payments/${paymentId}/status`, payload);
+  return data;
+}
+
