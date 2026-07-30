@@ -34,7 +34,6 @@ import java.util.Set;
  * Uses constructor injection as required by the team rule.
  * <p>
  * Disabled under the "mock" Spring profile so it never conflicts with
- * {@link MockPaymentServiceImpl}, which is used by the controller layer to develop
  * and test independently of the database. See docs/mock-service-guide.md.
  * </p>
  */
