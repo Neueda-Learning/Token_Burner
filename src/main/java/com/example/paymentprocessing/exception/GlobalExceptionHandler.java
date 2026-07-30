@@ -47,6 +47,14 @@ public class GlobalExceptionHandler {
         return buildErrorResponse("INVALID_PAYMENT_AMOUNT", exception.getMessage(), HttpStatus.BAD_REQUEST, request);
     }
 
+    @ExceptionHandler(InvalidCurrencyException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidCurrency(
+            InvalidCurrencyException exception,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse("INVALID_CURRENCY", exception.getMessage(), HttpStatus.BAD_REQUEST, request);
+    }
+
     @ExceptionHandler(InvalidPaymentStatusException.class)
     public ResponseEntity<ErrorResponse> handleInvalidPaymentStatus(
             InvalidPaymentStatusException exception,

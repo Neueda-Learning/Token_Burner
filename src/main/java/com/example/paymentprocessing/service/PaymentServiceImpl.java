@@ -10,7 +10,7 @@ import com.example.paymentprocessing.entity.User;
 import com.example.paymentprocessing.enums.PaymentStatus;
 import com.example.paymentprocessing.enums.UserStatus;
 import com.example.paymentprocessing.exception.InsufficientBalanceException;
-import com.example.paymentprocessing.exception.InvalidAccountStatusException;
+import com.example.paymentprocessing.exception.InvalidCurrencyException;
 import com.example.paymentprocessing.exception.InvalidPaymentAmountException;
 import com.example.paymentprocessing.exception.InvalidPaymentPasswordException;
 import com.example.paymentprocessing.exception.InvalidPaymentStatusException;
@@ -27,6 +27,7 @@ import java.math.BigDecimal;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Real, database-backed implementation of the fixed contract in docs/service-contract.md.
@@ -41,10 +42,20 @@ import java.util.Objects;
 @Profile("!mock")
 public class PaymentServiceImpl implements PaymentService {
 
+    private static final BigDecimal SINGLE_PAYMENT_LIMIT = new BigDecimal("1000000.00");
+
+    private static final String INACTIVE_ACCOUNT_FAILURE_NOTE =
+            "Payment failed: source or destination account is inactive";
+
+    private static final String SINGLE_PAYMENT_LIMIT_FAILURE_NOTE =
+            "Payment failed: transaction amount exceeds the single-payment limit";
+
     private static final EnumSet<PaymentStatus> TERMINAL_STATUSES = EnumSet.of(
             PaymentStatus.COMPLETED,
             PaymentStatus.FAILED
     );
+
+    private static final Set<String> SUPPORTED_CURRENCIES = Set.of("USD", "EUR", "GBP");
 
     private final PaymentRepository paymentRepository;
     private final PaymentStatusHistoryRepository paymentStatusHistoryRepository;
@@ -68,13 +79,11 @@ public class PaymentServiceImpl implements PaymentService {
         User destinationUser = userRepository.findById(request.destinationAccountId())
                 .orElseThrow(() -> new UserNotFoundException(request.destinationAccountId()));
 
-        if (sourceUser.getStatus() != UserStatus.ACTIVE || destinationUser.getStatus() != UserStatus.ACTIVE) {
-            throw new InvalidAccountStatusException();
-        }
-
         if (request.amount() == null || request.amount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidPaymentAmountException();
         }
+
+        String normalizedCurrency = normalizeAndValidateCurrency(request.currency());
 
         // No PasswordEncoder is configured in this training project, so the payment password
         // is compared directly against the stored hash, per docs/service-contract.md section 2.1.
@@ -82,7 +91,11 @@ public class PaymentServiceImpl implements PaymentService {
             throw new InvalidPaymentPasswordException();
         }
 
-        if (sourceUser.getBalance().compareTo(request.amount()) < 0) {
+        boolean accountsActive = sourceUser.getStatus() == UserStatus.ACTIVE
+                && destinationUser.getStatus() == UserStatus.ACTIVE;
+        boolean withinSinglePaymentLimit = request.amount().compareTo(SINGLE_PAYMENT_LIMIT) <= 0;
+
+        if (accountsActive && withinSinglePaymentLimit && sourceUser.getBalance().compareTo(request.amount()) < 0) {
             throw new InsufficientBalanceException();
         }
 
@@ -90,7 +103,7 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setSourceAccount(sourceUser);
         payment.setDestinationAccountId(request.destinationAccountId());
         payment.setAmount(request.amount());
-        payment.setCurrency(request.currency());
+        payment.setCurrency(normalizedCurrency);
         Payment savedPayment = paymentRepository.save(payment);
 
         PaymentStatusHistory history = buildHistoryRecord(
@@ -100,6 +113,22 @@ public class PaymentServiceImpl implements PaymentService {
                 buildTransitionNotes(savedPayment.getStatus())
         );
         paymentStatusHistoryRepository.save(history);
+
+        if (!accountsActive) {
+            return mapToPaymentResponse(transitionPaymentStatus(
+                    savedPayment,
+                    PaymentStatus.FAILED,
+                    INACTIVE_ACCOUNT_FAILURE_NOTE
+            ));
+        }
+
+        if (!withinSinglePaymentLimit) {
+            return mapToPaymentResponse(transitionPaymentStatus(
+                    savedPayment,
+                    PaymentStatus.FAILED,
+                    SINGLE_PAYMENT_LIMIT_FAILURE_NOTE
+            ));
+        }
 
         return mapToPaymentResponse(savedPayment);
     }
@@ -149,18 +178,11 @@ public class PaymentServiceImpl implements PaymentService {
             throw new InvalidPaymentStatusException(buildInvalidTransitionMessage(currentStatus, targetStatus));
         }
 
-        payment.setStatus(targetStatus);
-        Payment updatedPayment = paymentRepository.save(payment);
-
-        PaymentStatusHistory history = buildHistoryRecord(
-                updatedPayment,
-                currentStatus,
+        return mapToPaymentResponse(transitionPaymentStatus(
+                payment,
                 targetStatus,
                 buildTransitionNotes(targetStatus)
-        );
-        paymentStatusHistoryRepository.save(history);
-
-        return mapToPaymentResponse(updatedPayment);
+        ));
     }
 
     /**
@@ -216,6 +238,22 @@ public class PaymentServiceImpl implements PaymentService {
         return history;
     }
 
+    private Payment transitionPaymentStatus(Payment payment, PaymentStatus targetStatus, String notes) {
+        PaymentStatus currentStatus = payment.getStatus();
+        payment.setStatus(targetStatus);
+        Payment updatedPayment = paymentRepository.save(payment);
+
+        PaymentStatusHistory history = buildHistoryRecord(
+                updatedPayment,
+                currentStatus,
+                targetStatus,
+                notes
+        );
+        paymentStatusHistoryRepository.save(history);
+
+        return updatedPayment;
+    }
+
     // Converts a Payment entity into the DTO exposed to the Controller layer.
     private PaymentResponse mapToPaymentResponse(Payment payment) {
         return new PaymentResponse(
@@ -240,5 +278,18 @@ public class PaymentServiceImpl implements PaymentService {
                 history.getChangedAt(),
                 history.getNotes()
         );
+    }
+
+    private String normalizeAndValidateCurrency(String currency) {
+        if (currency == null) {
+            throw new InvalidCurrencyException();
+        }
+
+        String normalizedCurrency = currency.trim().toUpperCase();
+        if (!SUPPORTED_CURRENCIES.contains(normalizedCurrency)) {
+            throw new InvalidCurrencyException();
+        }
+
+        return normalizedCurrency;
     }
 }
